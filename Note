@@ -1,0 +1,208 @@
+const O='1-piece';
+add(O,0,0,'Flat','Closed',`
+44212P Flexima Closed Mini Beige CTF 15-45
+44220P Flexima Closed Mini Beige 20
+44225P Flexima Closed Mini Beige 25
+44230P Flexima Closed Mini Beige 30
+44235P Flexima Closed Mini Beige 35
+044015P Flexima Colo Midi Beige 15-50
+044115P Flexima Colo Midi Transparent 15-50
+044025P Flexima Colo Midi Beige 25 Mm
+044030P Flexima Colo Midi Beige 30 Mm
+044035P Flexima Colo Midi Beige 35 Mm
+044040P Flexima Colo Midi Beige 40 Mm
+044045P Flexima Colo Midi Beige 45 Mm
+044070P Flexima Colo Maxi Sc 15-75
+044170P Flexima Colo Maxi Transparent 15-75`);
+add(O,0,0,'Flat','Drainable',`
+42716P Flexima Roll Up Midi Sc CTF 15-60
+42715P Flexima Roll'up Midi Beige CTF 15-60
+42815P Flexima Roll'up Midi Transp CTF 15-60
+42725P Flexima Roll'up Midi Beige 25
+42730P Flexima Roll'up Midi Beige 30
+42735P Flexima Roll'up Midi Beige 35
+42740P Flexima Roll'up Midi Beige 40
+42776P Flexima 1p Roll Up Maxi SC CTF 15-76
+42876P Flexima Roll'up Maxi TRSP 15-76`);
+add(O,0,0,'Flat','High flow',`
+42970P Flexima Drain. High Flow Beige 15-76
+42971P Flexima Drain High Flow 15-76 TRSP`);
+add(O,0,0,'Flat','Uro',`
+044914P Flexima Uro Silk Midi Beige Cuttofit
+044913P Flexima Uro Silk Midi Transp Cuttofit
+44820P Flexima Uro Silk Midi Trp 20mm
+44825P Flexima Uro Silk Midi Trp 25mm
+44830P Flexima Uro Silk Midi Trp 30mm
+44836P Flexima Uro Silk Midi Trp 35mm`);
+add(O,0,0,'Soft flat','Drainable',`
+4622215P Flexima Active Roll Up Mini SC CTF15-45
+4620215P Flexima Active Roll'up Mini Beige 15-45
+4621215P Flexima Active Roll'up Mini Trsp 15-45
+4622115P Flexima Active Roll Up Midi SC CTF 15-50
+4620115P Flexima Active Roll'up Midi Beige CTF15-50
+4621115P Flexima Active Roll'up Midi Trsp CTF 15-50
+4620125P Flexima Active Roll'up Midi Beige 25 Mm
+4620130P Flexima Active Roll'up Midi Beige 30 Mm
+4620135P Flexima Active Roll'up Midi Beige 35 Mm
+4620140P Flexima Active Roll'up Midi Beige 40 Mm
+4622380P Flexima Active Roll Up Maxi Sc CTF 15-65
+4620380P Flexima Active Roll'up Maxi Beige 15-65
+4621380P Flexima Active Roll'up Maxi Trsp 15-65`);
+add(O,0,0,'Soft flat','Closed',`
+4612215P Flexima Active Closed Flat SC Mini 15-45
+4612115P Flexima Active Closed Flat SC Midi 15-50
+4611115P Flexima Active Closed Midi TRP 15-50 B30
+4610125P Flexima Active Closed Midi Beige 25 Mm
+4610130P Flexima Active Closed Midi Beige 30 Mm
+4610135P Flexima Active Closed Midi Beige 35 Mm
+4610140P Flexima Active Closed Midi Beige 40 Mm
+4612380P Flexima Active Closed Maxi Sc 15-65
+4611380P Flexima Active Closed Maxi TRSP 15-65`);
+add(O,0,0,'Convex','Closed',`
+44018P Flexima Colo Convex Midi Beige 15-45 B10
+44118P Flexima Colo Convex Midi Transp 15-45 B10
+44031P Flexima Colo Convex Midi Beige 30mm B10
+44037P Flexima Colo Convex Midi Beige 35mm B10`);
+add(O,0,0,'Convex','Drainable',`
+42719P Flexima Cvx Roll Up Midi SC CTF 15-35
+42717P Flexima Ileo Roll'up Cvx Midi Beige 15-35
+42817P Flexima Ileo Roll'up Cvx Midi Trans 15-35
+42720P Flexima Cvx Roll Up Midi SC CTF15-45
+42718P Flexima Ileo Roll'up Cvx Midi Beige 15-45
+42818P Flexima Ileo Roll'up Cvx Midi Trans 15-45
+42726P Flexima Ileo Roll'up Cvx Midi Beige 25mm B10
+42731P Flexima Ileo Roll'up Cvx Midi Beige 30mm B10`);
+add(O,0,0,'Convex','Uro',`
+44915P Flexima Uro Silk Convex Midi Transp 15-25
+44917P Flexima Uro Silk Convex Midi Transp 15-35
+44919P Flexima Uro Silk Convex Midi Beige 15-35
+44920P Flexima Uro Silk Convex Midi Transp 25mm
+44922P Flexima Uro Silk Convex Midi Transp 30mm`);
+add(O,0,0,'Soft convex','Drainable',`
+4622716P Flexima Active Soft O' Cvx Ru Midi SC CTF 15-45
+4622717P Flexima Active Soft O' Cvx Ru SC Maxi 15-45
+4622715P Flexima Active Soft O’CVX RU Maxi SC 15-35mm
+4621716P Flexima Active Soft O’CVX RU Maxi Trsp 15-45mm`);
+add(O,0,0,'Soft convex','High flow',`
+4632716P Flexima Active Soft O'Cvx High Flow Maxi Split Cover Cut-to-fit 15-45`);
+add(O,0,0,'Soft convex','Uro',`
+4641715P Flexima Active Soft O' Cvx Uro Trp 15-35
+4642715P Flexima Active Soft O’CVX Uro Silk Midi SC 15-35mm
+4642725P Flexima Active Soft O'Cvx Uro Midi Split Cover pre-cut 25
+4642730P Flexima Active Soft O'Cvx Uro Midi Split Cover pre-cut 30`);
+add(O,0,0,'Soft convex','Closed',`
+4612716P Flexima Active O'CVX CL Midi Beige SC 15-45`);
+
+const T='2-piece';
+add(T,'Mechanical','Baseplate','Flat',0,`
+936415P Flexima 3s Bp Flat 45/ 15-30mm
+936420P Flexima 3s Bp Flat 45/ 20mm
+936425P Flexima 3s Bp Flat 45/ 25mm
+936430P Flexima 3s Bp Flat 45/ 30mm
+936515P Flexima 3s Bp Flat 55/ 15-40mm
+936535P Flexima 3s Bp Flat 55/ 35mm
+936540P Flexima 3s Bp Flat 55/ 40mm
+936615P Flexima 3s Bp Flat 65/ 15-50mm
+936645P Flexima 3s Bp Flat 65/ 45mm
+936815P Flexima 3s Bp Flat 80/ 15-65mm`);
+add(T,'Mechanical','Baseplate','Convex',0,`
+937415P Flexima 3s Bp Cvx 45/ 15-26mm
+937425P Flexima 3s Bp Cvx 45/ 25mm
+937515P Flexima 3s Bp Cvx 55/ 15-36mm
+937530P Flexima 3s Bp Cvx 55/ 30mm
+937615P Flexima 3s Bp Cvx 65/ 15-46mm`);
+add(T,'Mechanical','Pouch',0,'Closed',`
+931045P Flexima 3s Colo Midi Beige 45mm
+931055P Flexima 3s Colo Midi Beige 55mm
+931065P Flexima 3s Colo Midi Beige 65mm
+931445P Flexima 3s Colo Maxi Beige 45mm
+931545P Flexima 3s Colo Maxi Trsp 45mm
+931455P Flexima 3s Colo Maxi Beige 55mm
+931555P Flexima 3s Colo Maxi Trsp 55mm
+931465P Flexima 3s Colo Maxi Beige65mm
+931565P Flexima 3s Colo Maxi Trsp 65mm
+931480P Flexima 3s Colo Maxi Beige 80mm
+931580P Flexima 3s Colo Maxi Trp 80mm`);
+add(T,'Mechanical','Pouch',0,'Drainable',`
+932045P Flexima 3s Ileo Midi Beige 45mm
+932145P Flexima 3s Ileo Midi Trp 45mm
+932055P Flexima 3s Ileo Midi Beige 55mm
+932155P Flexima 3s Ileo Midi Trp 55mm
+932065P Flexima 3s Ileo Midi Beige 65mm
+932165P Flexima 3s Ileo Midi Trp 65mm
+932445P Flexima 3s Ileo Maxi Beige 45mm
+932545P Flexima 3s Ileo Maxi Trp 45mm
+932455P Flexima 3s Ileo Maxi Beige 55mm
+932555P Flexima 3s Ileo Maxi Trp 55mm
+932465P Flexima 3s Ileo Maxi Beige 65mm
+932565P Flexima 3s Ileo Maxi Trp 65mm
+932480P Flexima 3s Ileo Maxi Beige 80mm
+932580P Flexima 3s Ileo Maxi Trp 80mm`);
+add(T,'Mechanical','Pouch',0,'High flow',`
+933055P Flexima 3s Hf Maxi Beige 55mm
+933155P Flexima 3s Hf Maxi Trp 55mm
+933065P Flexima 3s Hf Maxi Beige 65mm
+933165P Flexima 3s Hf Maxi Trp 65mm
+933080P Flexima 3s Hf Maxi Beige 80mm
+933180P Flexima 3s Hf Maxi Trp 80mm`);
+add(T,'Mechanical','Pouch',0,'Uro',`
+934045P Flexima 3s Uro Midi Sc 45mm
+934145P Flexima 3s Uro Midi Trp 45mm
+934055P Flexima 3s Uro Midi Sc 55mm
+934155P Flexima 3s Uro Midi Trp 55mm
+934065P Flexima 3s Uro Midi Sc 65mm
+934165P Flexima 3s Uro Midi Trp 65mm`);
+add(T,'Adhesive','Baseplate','Flat',0,`
+62040P Flexima Key Base Plate 40/15-35
+62050P Flexima Key Base Plate 50/15-45
+62060P Flexima Key Base Plate 60/15-55
+62080P Flexima Key Base Plate 80/15-75`);
+add(T,'Adhesive','Baseplate','Convex',0,`
+62052P Flexima Key Convex B Plate 50/15-25
+62062P Flexima Key Convex B Plate 60/15-35
+62063P Flexima Key Convex B Plate 60/15-45
+62064P Flexima Key Convex B Plate 60/25
+62066P Flexima Key Convex B Plate 60/30
+62067P Flexima Key Convex B Plate 60/35
+62069P Flexima Key Convex B Plate 60/40`);
+add(T,'Adhesive','Baseplate','Soft convex',0,`
+62362P Flexima Key Soft Convex B Plate 60/15-35
+62363P Flexima Key Soft Convex B Plate 60/25
+62364P Flexima Key Soft Convex B Plate 60/30`);
+add(T,'Adhesive','Pouch',0,'Closed',`
+62140P Flexima Key Closed Pouch Bge 40mm
+62240P Flexima Key Closed Pouch Trsp 40mm
+62150P Flexima Key Closed Pouch Bge 50
+62250P Flexima Key Closed Midi Pouch Trsp 50mm
+62160P Flexima Key Closed Midi Pouche Bge 60mm
+62260P Flexima Key Closed Midi Pouch Trsp 60mm
+62180P Flexima Key Closed Midi Pouch Beige 80 Mm
+62280P Flexima Key Closed Midi Pouch Trsp 80mm`);
+add(T,'Adhesive','Pouch',0,'Drainable',`
+621241P Flexima Key Roll Up Midi Bge 40mm
+621240P Flexima Key Roll Up Midi Transparent 40mm
+621251P Flexima Key Roll Up Midi Bge 50mm
+621250P Flexima Key Roll Up Midi Trsp 50mm
+621261P Flexima Key Roll Up Maxi Bge 60mm
+621260P Flexima Key Roll Up Maxi Trsp 60mm
+621281P Flexima Key Roll Up Maxi Beige 80mm
+621280P Flexima Key Roll Upmaxi Tsp 80mm
+62550P Flexima Key Maxi Drain Pouch Bge 50
+62560P Flexima Key Maxi Drain Pouch Bge 60
+62680P Flexima Key Maxi Drainable 80mm Trsp`);
+add('Accessories',0,0,0,'Drainage & collection',`
+039901P Flow Collector 2l
+28300A Urimed 2l Non Sterile Urine Drainage Bag`);
+add('Accessories',0,0,0,'Support',`
+5028P Ally Stoma Belt`);
+add('Accessories',0,0,0,'Seals & fillers',`
+2022482 Ally Ring 48mm/2.2mm
+2022483 Ally Ring 48mm / 3mm
+2022484 Ally Ring 48mm / 4.5mm
+2022983 Ally Ring 98mm / 3mm
+2022300 Ally Wafer Extenders`);
+add('Accessories',0,0,0,'Skin care',`
+5036 Barrier Spray
+2022200 Ally Paste (80gms)
+2022100 Ally Powder (28gms)
+2005-1 Ally Adhesive Remover`);
