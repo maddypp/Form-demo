@@ -1,5 +1,6 @@
 // Wrapped so it is safe to load once, in <head> (with defer) or at the end of <body>.
 console.log('Site Made By CodeHaven');
+console.log('Version 0.3 Beta');
 
 (function(){
 if(window.__sampleSelectorLoaded) return; window.__sampleSelectorLoaded=true;
