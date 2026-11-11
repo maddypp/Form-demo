@@ -1,0 +1,934 @@
+// Wrapped so it is safe to load once, in <head> (with defer) or at the end of <body>.
+console.log('Site Made By CodeHaven');
+
+(function(){
+if(window.__sampleSelectorLoaded) return; window.__sampleSelectorLoaded=true;
+function init(){
+/* ---------- Product data ----------
+   Source: Sample_shop_categories_Ostomy_Continence.xlsx, sheet "2026 Pricing".
+   SNAPSHOT holds the sheet's rows in column order (SHEET_COLS). Products are built from those rows:
+   - one product per web-shop group: column N has a catalogue link on the first row of each group and is blank on the rest
+   - categories come from the sheet (Category, Sub-category, Baseplate type, Pouch type, Coupling ring, Hole size, Colour, Size);
+     where the sheet is blank (continence categories, 1-piece pouch types) they are worked out from the description
+     (see CONT_RULES and pouchTypeOf below).
+   LIVE OPTION: publish the sheet as CSV, paste its URL into LIVE_CSV_URL and the page loads the latest rows
+   every time it opens (it falls back to SNAPSHOT if the request fails). */
+const LIVE_CSV_URL='';
+const SHEET_COLS=['area','category','ring','hole','colour','sub','baseType','pouchType','size','code','desc','packQty','uom','web'];
+const SHEET_HEADERS=['business area','category','coupling ring','hole size','colour','sub-category','baseplate type','pouch type','size','material','description','pack qty','purchase suom','images & summary for web-shop'];
+const SNAPSHOT=[
+["Ostomy", "2 Piece Mechanical", "45mm", "CTF 15-30", "", "Baseplate", "Flat", "", "", "936415P", "FLEXIMA 3S BASE PLATE 45/15-30", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007541/flexima-3s-flat-wafers-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Mechanical", "45mm", "PC 20", "", "Baseplate", "Flat", "", "", "936420P", "FLEXIMA 3S BASE PLATE 45/20", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "PC 25", "", "Baseplate", "Flat", "", "", "936425P", "FLEXIMA 3S BASE PLATE 45/25", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "PC 30", "", "Baseplate", "Flat", "", "", "936430P", "FLEXIMA 3S BASE PLATE 45/30", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "CTF 15-40", "", "Baseplate", "Flat", "", "", "936515P", "FLEXIMA 3S BASE PLATE 55/15-40", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "PC 35", "", "Baseplate", "Flat", "", "", "936535P", "FLEXIMA 3S BASE PLATE 55/35", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "PC 40", "", "Baseplate", "Flat", "", "", "936540P", "FLEXIMA 3S BASE PLATE 55/40", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "CTF 15-50", "", "Baseplate", "Flat", "", "", "936615P", "FLEXIMA 3S BASE PLATE 65/15-50", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "PC 45", "", "Baseplate", "Flat", "", "", "936645P", "FLEXIMA 3S BASE PLATE 65/45", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "CTF 15-65", "", "Baseplate", "Flat", "", "", "936815P", "FLEXIMA 3S BASE PLATE 80/15-65", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Beige", "Pouch", "", "Closed", "", "931445P", "FLEXIMA 3S CLOSED MAXI BEIGE 45", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007527/flexima-3s-colostomy-bags-two-piece-system"],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Beige", "Pouch", "", "Closed", "", "931455P", "FLEXIMA 3S CLOSED MAXI BEIGE 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Beige", "Pouch", "", "Closed", "", "931465P", "FLEXIMA 3S CLOSED MAXI BEIGE 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Beige", "Pouch", "", "Closed", "", "931480P", "FLEXIMA 3S CLOSED MAXI BEIGE 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Transparent", "Pouch", "", "Closed", "", "931545P", "FLEXIMA 3S CLOSED MAXI TRSP 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Transparent", "Pouch", "", "Closed", "", "931555P", "FLEXIMA 3S CLOSED MAXI TRSP 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Transparent", "Pouch", "", "Closed", "", "931565P", "FLEXIMA 3S CLOSED MAXI TRSP 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Transparent", "Pouch", "", "Closed", "", "931580P", "FLEXIMA 3S CLOSED MAXI TRSP 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Beige", "Pouch", "", "Closed", "", "931045P", "FLEXIMA 3S CLOSED MIDI BEIGE 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Beige", "Pouch", "", "Closed", "", "931055P", "FLEXIMA 3S CLOSED MIDI BEIGE 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Beige", "Pouch", "", "Closed", "", "931065P", "FLEXIMA 3S CLOSED MIDI BEIGE 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "CTF 15-25", "", "Baseplate", "Convex", "", "", "937415P", "FLEXIMA 3S CVX BASE PLATE 45/15-26", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007536/flexima-3s-convex-wafers-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Mechanical", "45mm", "PC 25", "", "Baseplate", "Convex", "", "", "937425P", "FLEXIMA 3S CVX BASE PLATE 45/25", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "CTF 15-35", "", "Baseplate", "Convex", "", "", "937515P", "FLEXIMA 3S CVX BASE PLATE 55/15-36", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "PC 30", "", "Baseplate", "Convex", "", "", "937530P", "FLEXIMA 3S CVX BASE PLATE 55/30", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "CTF 15-45", "", "Baseplate", "Convex", "", "", "937615P", "FLEXIMA 3S CVX BASE PLATE 65/15-46", 5, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Beige", "Pouch", "", "High flow", "", "933055P", "FLEXIMA 3S HIGH FLOW MAXI BEIGE 55", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007531/flexima-3s-high-flow-bags-two-piece-system"],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Beige", "Pouch", "", "High flow", "", "933065P", "FLEXIMA 3S HIGH FLOW MAXI BEIGE 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Beige", "Pouch", "", "High flow", "", "933080P", "FLEXIMA 3S HIGH FLOW MAXI BEIGE 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Transparent", "Pouch", "", "High flow", "", "933155P", "FLEXIMA 3S HIGH FLOW MAXI TRSP 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Transparent", "Pouch", "", "High flow", "", "933165P", "FLEXIMA 3S HIGH FLOW MAXI TRSP 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Transparent", "Pouch", "", "High flow", "", "933180P", "FLEXIMA 3S HIGH FLOW MAXI TRSP 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Beige", "Pouch", "", "Drainable", "", "932445P", "FLEXIMA 3S ROLL'UP MAXI BEIGE 45", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007529/flexima-3s-drainable-bags-two-piece-system"],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Beige", "Pouch", "", "Drainable", "", "932455P", "FLEXIMA 3S ROLL'UP MAXI BEIGE 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Beige", "Pouch", "", "Drainable", "", "932465P", "FLEXIMA 3S ROLL'UP MAXI BEIGE 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Beige", "Pouch", "", "Drainable", "", "932480P", "FLEXIMA 3S ROLL'UP MAXI BEIGE 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Transparent", "Pouch", "", "Drainable", "", "932545P", "FLEXIMA 3S ROLL'UP MAXI TRSP 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Transparent", "Pouch", "", "Drainable", "", "932555P", "FLEXIMA 3S ROLL'UP MAXI TRSP 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Transparent", "Pouch", "", "Drainable", "", "932565P", "FLEXIMA 3S ROLL'UP MAXI TRSP 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "80mm", "", "Transparent", "Pouch", "", "Drainable", "", "932580P", "FLEXIMA 3S ROLL'UP MAXI TRSP 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Beige", "Pouch", "", "Drainable", "", "932045P", "FLEXIMA 3S ROLL'UP MIDI BEIGE 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Beige", "Pouch", "", "Drainable", "", "932055P", "FLEXIMA 3S ROLL'UP MIDI BEIGE 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Beige", "Pouch", "", "Drainable", "", "932065P", "FLEXIMA 3S ROLL'UP MIDI BEIGE 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Transparent", "Pouch", "", "Drainable", "", "932145P", "FLEXIMA 3S ROLL'UP MIDI TRSP 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Transparent", "Pouch", "", "Drainable", "", "932155P", "FLEXIMA 3S ROLL'UP MIDI TRSP 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Transparent", "Pouch", "", "Drainable", "", "932165P", "FLEXIMA 3S ROLL'UP MIDI TRSP 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Split cover beige", "Pouch", "", "Uro", "", "934045P", "FLEXIMA 3S URO MIDI SPLIT COVER 45", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007532/flexima-softima-3s-urostomy-bags-two-piece-system"],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Split cover beige", "Pouch", "", "Uro", "", "934055P", "FLEXIMA 3S URO MIDI SPLIT COVER 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Split cover beige", "Pouch", "", "Uro", "", "934065P", "FLEXIMA 3S URO MIDI SPLIT COVER 65", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "45mm", "", "Transparent", "Pouch", "", "Uro", "", "934145P", "FLEXIMA 3S URO MIDI TRSP 45", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "55mm", "", "Transparent", "Pouch", "", "Uro", "", "934155P", "FLEXIMA 3S URO MIDI TRSP 55", 30, "Pack", ""],
+["Ostomy", "2 Piece Mechanical", "65mm", "", "Transparent", "Pouch", "", "Uro", "", "934165P", "FLEXIMA 3S URO MIDI TRSP 65", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-65", "Split cover beige", "", "", "", "", "4612380P", "FLEXIMA ACTIVE CLOSED MAXI SC 15-65", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006597/flexima-active-colostomy-bags-one-piece-system"],
+["Ostomy", "1 Piece", "", "CTF 15-65", "Transparent", "", "", "", "", "4611380P", "FLEXIMA ACTIVE CLOSED MAXI TRSP 15-65", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-50", "Split cover beige", "", "", "", "", "4612115P", "FLEXIMA ACTIVE CLOSED MIDI SC 15-50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Split cover beige", "", "", "", "", "4610125P", "FLEXIMA ACTIVE CLOSED MIDI SC 25", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Split cover beige", "", "", "", "", "4610130P", "FLEXIMA ACTIVE CLOSED MIDI SC 30", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Split cover beige", "", "", "", "", "4610135P", "FLEXIMA ACTIVE CLOSED MIDI SC 35", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 40", "Split cover beige", "", "", "", "", "4610140P", "FLEXIMA ACTIVE CLOSED MIDI SC 40", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-50", "Transparent", "", "", "", "", "4611115P", "FLEXIMA ACTIVE CLOSED MIDI TRSP 15-50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4612215P", "FLEXIMA ACTIVE CLOSED MINI SC 15-45", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4612716P", "FLEXIMA ACTIVE O'CVX CL MIDI SC 15-45", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00015576/flexima-active-o-convex-colostomy-bags"],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4632716P", "FLEXIMA ACTIVE O'CVX HF MAXI SC 15-45", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00015574/flexima-active-o-convex-high-flow-bags"],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Split cover beige", "", "", "", "", "4622715P", "FLEXIMA ACTIVE O'CVX RUP MAXI SC 15-35", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00010144/flexima-active-o-convex-drainable-bags-one-piece-soft-convex-ostomy-bag"],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4622717P", "FLEXIMA ACTIVE O'CVX RUP MAXI SC 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Transparent", "", "", "", "", "4621716P", "FLEXIMA ACTIVE O'CVX RUP MAXI TRSP 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4622716P", "FLEXIMA ACTIVE O'CVX RUP MIDI SC 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Split cover beige", "", "", "", "", "4642715P", "FLEXIMA ACTIVE O'CVX URO MIDI SC 15-35", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00010145/flexima-active-o-convex-urostomy-bags-one-piece-soft-convexity"],
+["Ostomy", "1 Piece", "", "PC 25", "Split cover beige", "", "", "", "", "4642725P", "FLEXIMA ACTIVE O'CVX URO MIDI SC 25", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Split cover beige", "", "", "", "", "4642730P", "FLEXIMA ACTIVE O'CVX URO MIDI SC 30", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Transparent", "", "", "", "", "4641715P", "FLEXIMA ACTIVE O'CVX URO MIDI TRSP 15-35", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-65", "Beige", "", "", "", "", "4620380P", "FLEXIMA ACTIVE ROLL'UP MAXI BEIGE 15-65", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006612/flexima-active-drainable-bags-one-piece-ostomy-bag"],
+["Ostomy", "1 Piece", "", "CTF 15-65", "Split cover beige", "", "", "", "", "4622380P", "FLEXIMA ACTIVE ROLL'UP MAXI SC 15-65", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-65", "Transparent", "", "", "", "", "4621380P", "FLEXIMA ACTIVE ROLL'UP MAXI TRSP 15-65", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-50", "Beige", "", "", "", "", "4620115P", "FLEXIMA ACTIVE ROLL'UP MIDI BEIGE 15-50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Beige", "", "", "", "", "4620125P", "FLEXIMA ACTIVE ROLL'UP MIDI BEIGE 25", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Beige", "", "", "", "", "4620130P", "FLEXIMA ACTIVE ROLL'UP MIDI BEIGE 30", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Beige", "", "", "", "", "4620135P", "FLEXIMA ACTIVE ROLL'UP MIDI BEIGE 35", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 40", "Beige", "", "", "", "", "4620140P", "FLEXIMA ACTIVE ROLL'UP MIDI BEIGE 40", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-50", "Split cover beige", "", "", "", "", "4622115P", "FLEXIMA ACTIVE ROLL'UP MIDI SC 15-50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-50", "Transparent", "", "", "", "", "4621115P", "FLEXIMA ACTIVE ROLL'UP MIDI TRSP 15-50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Beige", "", "", "", "", "4620215P", "FLEXIMA ACTIVE ROLL'UP MINI BEIGE 15-45", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "4622215P", "FLEXIMA ACTIVE ROLL'UP MINI SC 15-45", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Beige", "", "", "", "", "44018P", "FLEXIMA CLOSED CVX MIDI BEIGE 15-45", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004603/flexima-convex-colostomy-bags-one-piece-system"],
+["Ostomy", "1 Piece", "", "PC 30", "Beige", "", "", "", "", "44031P", "FLEXIMA CLOSED CVX MIDI BEIGE 30", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Beige", "", "", "", "", "44037P", "FLEXIMA CLOSED CVX MIDI BEIGE 35", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Transparent", "", "", "", "", "44118P", "FLEXIMA CLOSED CVX MIDI TRSP 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-75", "Split cover beige", "", "", "", "", "044070P", "FLEXIMA CLOSED MAXI SPLIT COVER 15-75", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00000889/flexima-flat-colostomy-bags-one-piece-system"],
+["Ostomy", "1 Piece", "", "CTF 15-75", "Transparent", "", "", "", "", "044170P", "FLEXIMA CLOSED MAXI TRSP 15-75", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-60", "Beige", "", "", "", "", "044015P", "FLEXIMA CLOSED MIDI BEIGE 15-60", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Beige", "", "", "", "", "044025P", "FLEXIMA CLOSED MIDI BEIGE 25", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Beige", "", "", "", "", "044030P", "FLEXIMA CLOSED MIDI BEIGE 30", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Beige", "", "", "", "", "044035P", "FLEXIMA CLOSED MIDI BEIGE 35", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 40", "Beige", "", "", "", "", "044040P", "FLEXIMA CLOSED MIDI BEIGE 40", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 45", "Beige", "", "", "", "", "044045P", "FLEXIMA CLOSED MIDI BEIGE 45", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-60", "Transparent", "", "", "", "", "044115P", "FLEXIMA CLOSED MIDI TRSP 15-60", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Beige", "", "", "", "", "44212P", "FLEXIMA CLOSED MINI BEIGE 15-45", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-75", "Beige", "", "", "", "", "42970P", "FLEXIMA HIGH FLOW MAXI BEIGE 15-76", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006551/flexima-high-flow-bags-one-piece-ostomy-bag"],
+["Ostomy", "1 Piece", "", "CTF 15-75", "Transparent", "", "", "", "", "42971P", "FLEXIMA HIGH FLOW MAXI TRSP 15-76", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "40mm", "CTF 15-35", "", "Baseplate", "Flat", "", "", "62040P", "FLEXIMA KEY BASE PLATE 40/15-35", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00002985/flexima-key-3s-flat-wafers-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Adhesive", "50mm", "CTF 15-45", "", "Baseplate", "Flat", "", "", "62050P", "FLEXIMA KEY BASE PLATE 50/15-45", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "CTF 15-55", "", "Baseplate", "Flat", "", "", "62060P", "FLEXIMA KEY BASE PLATE 60/15-55", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "80mm", "CTF 15-75", "", "Baseplate", "Flat", "", "", "62080P", "FLEXIMA KEY BASE PLATE 80/15-75", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "", "Beige", "Pouch", "", "Closed", "", "62160P", "FLEXIMA KEY CLOSED MAXI BEIGE 60", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00002986/flexima-key-colostomy-bags-two-piece-system"],
+["Ostomy", "2 Piece Adhesive", "80mm", "", "Beige", "Pouch", "", "Closed", "", "62180P", "FLEXIMA KEY CLOSED MAXI BEIGE 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "", "Transparent", "Pouch", "", "Closed", "", "62260P", "FLEXIMA KEY CLOSED MAXI TRSP 60", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "80mm", "", "Transparent", "Pouch", "", "Closed", "", "62280P", "FLEXIMA KEY CLOSED MAXI TRSP 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "40mm", "", "Beige", "Pouch", "", "Closed", "", "62140P", "FLEXIMA KEY CLOSED MIDI BEIGE 40", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "", "Beige", "Pouch", "", "Closed", "", "62150P", "FLEXIMA KEY CLOSED MIDI BEIGE 50", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "40mm", "", "Transparent", "Pouch", "", "Closed", "", "62240P", "FLEXIMA KEY CLOSED MIDI TRSP 40", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "CTF 15-25", "", "Baseplate", "Convex", "", "", "62052P", "FLEXIMA KEY CVX BASE PLATE 50/15-25", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004772/flexima-key-3s-convex-wafers-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Adhesive", "60mm", "CTF 15-35", "", "Baseplate", "Convex", "", "", "62062P", "FLEXIMA KEY CVX BASE PLATE 60/15-35", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "CTF 15-45", "", "Baseplate", "Convex", "", "", "62063P", "FLEXIMA KEY CVX BASE PLATE 60/15-45", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 25", "", "Baseplate", "Convex", "", "", "62064P", "FLEXIMA KEY CVX BASE PLATE 60/25", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 30", "", "Baseplate", "Convex", "", "", "62066P", "FLEXIMA KEY CVX BASE PLATE 60/30", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 35", "", "Baseplate", "Convex", "", "", "62067P", "FLEXIMA KEY CVX BASE PLATE 60/35", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 40", "", "Baseplate", "Convex", "", "", "62069P", "FLEXIMA KEY CVX BASE PLATE 60/40", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "CTF 15-35", "", "Baseplate", "Soft convex", "", "", "62362P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/15-35", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00017275/flexima-key-soft-convex?bomUsage=B"],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 25", "", "Baseplate", "Soft convex", "", "", "62363P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/25", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 30", "", "Baseplate", "Soft convex", "", "", "62364P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/30", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "CTF 15-45", "", "Baseplate", "Soft convex", "", "", "62365P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/15-45", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 35", "", "Baseplate", "Soft convex", "", "", "62366P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/35", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "PC 40", "", "Baseplate", "Soft convex", "", "", "62367P", "FLEXIMA KEY SOFT BASE PLATE CVX 60/40", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "CTF 15-25", "", "Baseplate", "Soft convex", "", "", "62352P", "FLEXIMA KEY SOFT BASE PLATE CVX 50/15-25", 5, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "", "Beige", "Pouch", "", "High flow", "", "62550P", "FLEXIMA KEY HIGH FLOW MAXI BEIGE 50", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004758/flexima-key-maxi-drainable-bags-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Adhesive", "60mm", "", "Beige", "Pouch", "", "High flow", "", "62560P", "FLEXIMA KEY HIGH FLOW MAXI BEIGE 60", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "80mm", "", "Transparent", "Pouch", "", "High flow", "", "62680P", "FLEXIMA KEY HIGH FLOW MAXI TRSP 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "80mm", "", "Transparent", "Pouch", "", "Drainable", "", "621280P", "FLEXIMA KEY ROLL'UP MAXI TRSP 80", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004757/flexima-key-drainable-bags-two-piece-ostomy-bag-system"],
+["Ostomy", "2 Piece Adhesive", "80mm", "", "Beige", "Pouch", "", "Drainable", "", "621281P", "FLEXIMA KEY ROLL'UP MAXI BEIGE 80", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "", "Beige", "Pouch", "", "Drainable", "", "621261P", "FLEXIMA KEY ROLL'UP MAXI BEIGE 60", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "60mm", "", "Transparent", "Pouch", "", "Drainable", "", "621260P", "FLEXIMA KEY ROLL'UP MAXI TRSP 60", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "40mm", "", "Beige", "Pouch", "", "Drainable", "", "621241P", "FLEXIMA KEY ROLL'UP MIDI BEIGE 40", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "", "Beige", "Pouch", "", "Drainable", "", "621251P", "FLEXIMA KEY ROLL'UP MIDI BEIGE 50", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "40mm", "", "Transparent", "Pouch", "", "Drainable", "", "621240P", "FLEXIMA KEY ROLL'UP MIDI TRSP 40", 30, "Pack", ""],
+["Ostomy", "2 Piece Adhesive", "50mm", "", "Transparent", "Pouch", "", "Drainable", "", "621250P", "FLEXIMA KEY ROLL'UP MIDI TRSP 50", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Beige", "", "", "", "", "42717P", "FLEXIMA ROLL'UP CVX MIDI BEIGE 15-35", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004605/flexima-convex-drainable-bags-one-piece-ostomy-bag"],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Beige", "", "", "", "", "42718P", "FLEXIMA ROLL'UP CVX MIDI BEIGE 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Beige", "", "", "", "", "42726P", "FLEXIMA ROLL'UP CVX MIDI BEIGE 25", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Beige", "", "", "", "", "42731P", "FLEXIMA ROLL'UP CVX MIDI BEIGE 30", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Split cover beige", "", "", "", "", "42719P", "FLEXIMA ROLL'UP CVX MIDI SC 15-35", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Split cover beige", "", "", "", "", "42720P", "FLEXIMA ROLL'UP CVX MIDI SC 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Transparent", "", "", "", "", "42817P", "FLEXIMA ROLL'UP CVX MIDI TRSP 15-35", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-45", "Transparent", "", "", "", "", "42818P", "FLEXIMA ROLL'UP CVX MIDI TRSP 15-45", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-75", "Split cover beige", "", "", "", "", "42776P", "FLEXIMA ROLL'UP MAXI SPLIT COVER 15-75", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004752/flexima-flat-drainable-bags-one-piece-ostomy-bag"],
+["Ostomy", "1 Piece", "", "CTF 15-60", "Beige", "", "", "", "", "42715P", "FLEXIMA ROLL'UP MIDI BEIGE 15-60", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Beige", "", "", "", "", "42725P", "FLEXIMA ROLL'UP MIDI BEIGE 25", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Beige", "", "", "", "", "42730P", "FLEXIMA ROLL'UP MIDI BEIGE 30", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Beige", "", "", "", "", "42735P", "FLEXIMA ROLL'UP MIDI BEIGE 35", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 40", "Beige", "", "", "", "", "42740P", "FLEXIMA ROLL'UP MIDI BEIGE 40", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-60", "Split cover beige", "", "", "", "", "42716P", "FLEXIMA ROLL'UP MIDI SPLIT COVER 15-60", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-60", "Transparent", "", "", "", "", "42815P", "FLEXIMA ROLL'UP MIDI TRSP 15-60", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Beige", "", "", "", "", "44919P", "FLEXIMA URO SILK CVX MIDI BEIGE 15-35", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004606/flexima-uro-silk-convex-urostomy-bags-one-piece-system"],
+["Ostomy", "1 Piece", "", "CTF 15-25", "Transparent", "", "", "", "", "44915P", "FLEXIMA URO SILK CVX MIDI TRSP 15-25", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-35", "Transparent", "", "", "", "", "44917P", "FLEXIMA URO SILK CVX MIDI TRSP 15-35", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Transparent", "", "", "", "", "44920P", "FLEXIMA URO SILK CVX MIDI TRSP 25", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Transparent", "", "", "", "", "44922P", "FLEXIMA URO SILK CVX MIDI TRSP 30", 10, "Pack", ""],
+["Ostomy", "1 Piece", "", "CTF 15-55", "Beige", "", "", "", "", "044914P", "FLEXIMA URO SILK MIDI BEIGE 12-55", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003274/flexima-uro-silk-flat-urostomy-bags-one-piece-system"],
+["Ostomy", "1 Piece", "", "CTF 15-55", "Transparent", "", "", "", "", "044913P", "FLEXIMA URO SILK MIDI TRSP 12-55", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 20", "Transparent", "", "", "", "", "44820P", "FLEXIMA URO SILK MIDI TRSP 20", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 25", "Transparent", "", "", "", "", "44825P", "FLEXIMA URO SILK MIDI TRSP 25", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 30", "Transparent", "", "", "", "", "44830P", "FLEXIMA URO SILK MIDI TRSP 30", 30, "Pack", ""],
+["Ostomy", "1 Piece", "", "PC 35", "Transparent", "", "", "", "", "44836P", "FLEXIMA URO SILK MIDI TRSP 35", 30, "Pack", ""],
+["Ostomy", "Ostomy accessories", "", "", "", "", "", "", "", "039901P", "FLOW COLLECTOR", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003117/flow-collector-collecting-bag-for-high-stoma-output"],
+["Ostomy", "Ostomy accessories", "", "", "White", "Belt", "", "", "", "5028P", "ALLY BELT", 1, "Piece", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006944/ally-belt-ostomy-belt"],
+["Ostomy", "Ostomy accessories", "", "", "Beige", "Belt", "", "", "118-200cm", "5031P", "ALLY BELT BEIGE MEDIUM", 1, "Piece", ""],
+["Ostomy", "Ostomy accessories", "", "", "Beige", "Belt", "", "", "138-220cm", "5032P", "ALLY BELT BEIGE LARGE", 1, "Piece", ""],
+["Ostomy", "Ostomy accessories", "", "", "", "Barrier spray", "", "", "", 5036, "ALLY BARRIER FILM 28ML SPRAY BOTTLE", 12, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006471/ally-barrier-film-spray"],
+["Ostomy", "Ostomy accessories", "", "", "", "Adhesive remover", "", "", "", "2005-1", "ALLY ADHESIVE REMOVER BV", 24, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006775/ally-adhesive-remover-for-ostomy-bag-system"],
+["Ostomy", "Ostomy accessories", "", "", "", "Rings / Seals", "", "", "Slim", 2022482, "Ally Ring 48mm / 2.2mm", 10, "Pack", ""],
+["Ostomy", "Ostomy accessories", "", "", "", "Rings / Seals", "", "", "Regular", 2022483, "Ally Ring 48mm / 3mm", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00014655/ally-rings-ostomy-ring"],
+["Ostomy", "Ostomy accessories", "", "", "", "Rings / Seals", "", "", "Thick", 2022484, "Ally Ring 48mm / 4.5mm", 10, "Pack", ""],
+["Ostomy", "Ostomy accessories", "", "", "", "Rings / Seals", "", "", "Wide", 2022983, "Ally Ring 98mm / 3mm", 10, "Pack", ""],
+["Ostomy", "Ostomy accessories", "", "", "", "Paste", "", "", "", 2022200, "Ally Paste (80gms)", 1, "Piece", "https://catalogs.bbraun.com.au/en-AU/p/PRID00014659/ally-paste-ostomy-paste-without-alcohol"],
+["Ostomy", "Ostomy accessories", "", "", "", "Powder", "", "", "", 2022100, "Ally Powder (28gms)", 1, "Piece", "https://catalogs.bbraun.com.au/en-AU/p/PRID00014661/ally-powder-ostomy-powder"],
+["Ostomy", "Ostomy accessories", "", "", "", "Wafer extenders / Elastic tape", "", "", "80mm", 2022300, "Ally wafer extenders", 20, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00014657/ally-wafer-extenders-ostomy-elastic-barrier-strips"],
+["Continence", "", "", "", "", "", "", "", "", "226306AU", "ACTREEN GLYS SET NELATON CH06 20CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00001000/actreen-glys-set-nelaton-20-cm-female-and-paediatric-intermittent-catheter"],
+["Continence", "", "", "", "", "", "", "", "", "226308AU", "ACTREEN GLYS SET NELATON CH08 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "226208AU", "ACTREEN GLYS SET NELATON CH08 45CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00001007/actreen-glys-set-nelaton-45-cm"],
+["Continence", "", "", "", "", "", "", "", "", "226108AU", "ACTREEN GLYS SET TIEMANN CH08 45CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00001008/actreen-glys-set-tiemann-45-cm-long-male-intermittent-catheter"],
+["Continence", "", "", "", "", "", "", "", "", "238306AU", "ACTREEN HI-LITE CATH NELATON CH06 20CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007435/actreen-hi-lite-cath-nelaton-20cm"],
+["Continence", "", "", "", "", "", "", "", "", "238308AU", "ACTREEN HI-LITE CATH NELATON CH08 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238310AU", "ACTREEN HI-LITE CATH NELATON CH10 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238312AU", "ACTREEN HI-LITE CATH NELATON CH12 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238314AU", "ACTREEN HI-LITE CATH NELATON CH14 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238316AU", "ACTREEN HI-LITE CATH NELATON CH16 20CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238208AU", "ACTREEN HI-LITE CATH NELATON CH08 41CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007434/actreen-hi-lite-cath-nelaton-41cm"],
+["Continence", "", "", "", "", "", "", "", "", "238210AU", "ACTREEN HI-LITE CATH NELATON CH10 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238212AU", "ACTREEN HI-LITE CATH NELATON CH12 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238214AU", "ACTREEN HI-LITE CATH NELATON CH14 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238216AU", "ACTREEN HI-LITE CATH NELATON CH16 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238218AU", "ACTREEN HI-LITE CATH NELATON CH18 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238108AU", "ACTREEN HI-LITE CATH TIEMANN CH08 41CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007433/actreen-hi-lite-cath-tiemann-41cm"],
+["Continence", "", "", "", "", "", "", "", "", "238110AU", "ACTREEN HI-LITE CATH TIEMANN CH10 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238112AU", "ACTREEN HI-LITE CATH TIEMANN CH12 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238114AU", "ACTREEN HI-LITE CATH TIEMANN CH14 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238116AU", "ACTREEN HI-LITE CATH TIEMANN CH16 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "238118AU", "ACTREEN HI-LITE CATH TIEMANN CH18 41CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242210AU", "ACTREEN HI-LITE SET NELATON CH10 37CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00008986/actreen-hi-lite-set-nelaton-37-cm-long-male-intermittent-catheter"],
+["Continence", "", "", "", "", "", "", "", "", "242212AU", "ACTREEN HI-LITE SET NELATON CH12 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242214AU", "ACTREEN HI-LITE SET NELATON CH14 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242216AU", "ACTREEN HI-LITE SET NELATON CH16 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242218AU", "ACTREEN HI-LITE SET NELATON CH18 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242110AU", "ACTREEN HI-LITE SET TIEMANN CH10 37CM", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00008987/actreen-hi-lite-set-tiemann-37-cm-long-male-intermittent-catheter"],
+["Continence", "", "", "", "", "", "", "", "", "242112AU", "ACTREEN HI-LITE SET TIEMANN CH12 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242114AU", "ACTREEN HI-LITE SET TIEMANN CH14 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242116AU", "ACTREEN HI-LITE SET TIEMANN CH16 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "242118AU", "ACTREEN HI-LITE SET TIEMANN CH18 37CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228212AU", "ACTREEN LITE CATH NELATON CH12 45CM", 30, "Pack", "Not promoted. Old product."],
+["Continence", "", "", "", "", "", "", "", "", "228214AU", "ACTREEN LITE CATH NELATON CH14 45CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228112AU", "ACTREEN LITE CATH TIEMANN CH12 45CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228114AU", "ACTREEN LITE CATH TIEMANN CH14 45CM", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228008AU", "ACTREEN MINI CATH CH08", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006179/actreen-mini-cath"],
+["Continence", "", "", "", "", "", "", "", "", "228010AU", "ACTREEN MINI CATH CH10", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228012AU", "ACTREEN MINI CATH CH12", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228014AU", "ACTREEN MINI CATH CH14", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "228016AU", "ACTREEN MINI CATH CH16", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "239010AU", "ACTREEN MINI SET CH10", 30, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007892/actreen-mini-set-nbsp"],
+["Continence", "", "", "", "", "", "", "", "", "239012AU", "ACTREEN MINI SET CH12", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "239014AU", "ACTREEN MINI SET CH14", 30, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 28114, "MEDICARE BAG 2 L", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00000968/medicare-2-l-urine-collection-bag"],
+["Continence", "", "", "", "", "", "", "", "", 28201, "URIMED TRIBAG PLUS STERIL 500 ML 2 CM", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003392/urimed-tribag-plus"],
+["Continence", "", "", "", "", "", "", "", "", 28203, "URIMED TRIBAG PLUS STERILE 500 ML 20 CM", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 28305, "URIMED TRIBAG PLUS STERILE 800 ML 60 CM", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 28306, "URIMED TRIBAG PLUS NON STERILE 800 ML 60", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 28610, "URIMED SP   URINE BAGS 10 UNITS", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004721/urimed-sp"],
+["Continence", "", "", "", "", "", "", "", "", 28650, "URIMED SP   URINE BAGS 50 UNITS", 50, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "28150A", "URIMED BAG PLUS 1.5L", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004766/urimed-bag-plus-500-ml-urine-collection-leg-bag"],
+["Ostomy", "Ostomy accessories", "", "", "", "", "", "", "", "28300A", "URIMED BAG 2L", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003164/urimed-bag-2-l-night-and-day-urine-collection-bag"],
+["Continence", "Continence accessories", "", "", "", "", "", "", "", "28300A", "URIMED BAG 2L", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003164/urimed-bag-2-l-night-and-day-urine-collection-bag"],
+["Continence", "", "", "", "", "", "", "", "", "28431S", "UREOFIX 112 PLUS", 25, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00003393/ureofix-112-plus-closed-urine-drainage-system"],
+["Continence", "", "", "", "", "", "", "", "", "28501A", "URIMED BAG PLUS 0.5L", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4801020, "URINE BAG 4L", 20, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006784/urine-bag-4-l-for-urine-drainage"],
+["Continence", "", "", "", "", "", "", "", "", 4801030, "URINE BAG 4L with Pump TURP", 20, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "68550R", "URIMED STRAP (Pair)", "120 Pairs", "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00004711/urimed-straps-fixation-for-urine-leg-bags"],
+["Continence", "", "", "", "", "", "", "", "", 29260, "URIMED KLETT SMALL, BOX 10 PCS", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00000957/urimed-klett"],
+["Continence", "", "", "", "", "", "", "", "", 29261, "URIMED KLETT LARGE 10", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 292600, "URIMED KLETT SMALL 50", 50, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 292610, "URIMED KLETT, LARGE, BOX 50 PCS", 50, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563312, "URIMED CATH FOLEY NELATON CH12", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00008625/urimed-cath-foley-nelaton-urinary-indwelling-catheter"],
+["Continence", "", "", "", "", "", "", "", "", 4563314, "URIMED CATH FOLEY NELATON CH14", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563316, "URIMED CATH FOLEY NELATON CH16", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563318, "URIMED CATH FOLEY NELATON CH18", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563320, "URIMED CATH FOLEY NELATON CH20", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563322, "URIMED CATH FOLEY NELATON CH22", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563324, "URIMED CATH FOLEY NELATON CH24", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563412, "URIMED CATH FOLEY TIEMANN CH12", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00008626/urimed-cath-foley-tiemann"],
+["Continence", "", "", "", "", "", "", "", "", 4563414, "URIMED CATH FOLEY TIEMANN CH14", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563416, "URIMED CATH FOLEY TIEMANN CH16", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563418, "URIMED CATH FOLEY TIEMANN CH18", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4563420, "URIMED CATH FOLEY TIEMANN CH20", 10, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", "FB99841", "URO TAINER SOLUTION R CE 100ML", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00005442/uro-tainer-solutio-r"],
+["Continence", "", "", "", "", "", "", "", "", "FB99853", "URO-TAINER M NACL 0,9%     INT  100ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00005443/uro-tainer-m-nacl-bladder-irrigation-solution-for-urinary-catheter-maintenance"],
+["Continence", "", "", "", "", "", "", "", "", "FB99833", "URO-TAINER NACL 0,9%  INT    10X100ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00000096/uro-tainer-nacl-0-9-bladder-irrigation-solution-for-urinary-catheter-maintenance"],
+["Continence", "", "", "", "", "", "", "", "", "FB99965", "URO-TAINER POLIHEXANIDE 0,02% 100ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00008677/uro-tainer-polihexanide-bladder-irrigation-solution-for-urinary-catheter-maintenance"],
+["Continence", "", "", "", "", "", "", "", "", 9746625, "URO-TAINER SOLUTIO R   INT  TWIN 60ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00006141/uro-tainer-twin-solutio-r"],
+["Continence", "", "", "", "", "", "", "", "", "FB99839", "URO-TAINER SUBY G          INT  100ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00005441/uro-tainer-suby-g"],
+["Continence", "", "", "", "", "", "", "", "", 9746609, "URO-TAINER SUBY G  INT      TWIN 60ML CE", 10, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00007415/uro-tainer-twin-suby-g"],
+["Continence", "", "", "", "", "", "", "", "", 4450512, "CYSTOFIX DILATION INT BAL CH12", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00000464/cystofix-exchange-sets"],
+["Continence", "", "", "", "", "", "", "", "", 4450514, "CYSTOFIX DILATION INT BAL CH14", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450516, "CYSTOFIX DILATION INT BAL CH16", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450010, "CYSTOFIX EXCH/5 INT BAL W GUIDE CH10", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450012, "CYSTOFIX EXCH/5 INT BAL W GUIDE CH12", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450014, "CYSTOFIX EXCH/5 INT BAL W GUIDE CH14", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450016, "CYSTOFIX EXCH/5 INT BAL W GUIDE CH16", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450712, "CYSTOFIX EXCH/5 INT BAL WO GUIDE CH12", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450714, "CYSTOFIX EXCH/5 INT BAL WO GUIDE CH14", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450716, "CYSTOFIX EXCH/5 INT BAL WO GUIDE CH16", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450718, "CYSTOFIX EXCH/5 INT BAL WO GUIDE CH18", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450720, "CYSTOFIX EXCH/5 INT BAL WO GUIDE CH20", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450410, "CYSTOFIX SG SET INT BAL CH10", 5, "Pack", "https://catalogs.bbraun.com.au/en-AU/p/PRID00009852/cystofix-sg-set"],
+["Continence", "", "", "", "", "", "", "", "", 4450412, "CYSTOFIX SG SET INT BAL CH12", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450414, "CYSTOFIX SG SET INT BAL CH14", 5, "Pack", ""],
+["Continence", "", "", "", "", "", "", "", "", 4450416, "CYSTOFIX SG SET INT BAL CH16", 5, "Pack", ""]
+];
+
+/* ---- category order and wording ---- */
+const SYS_ORDER=['1 Piece','2 Piece Mechanical','2 Piece Adhesive','Accessories'];
+const TYPE_ORDER=['Closed','Drainable','High flow','Uro'];
+const TYPE_LABEL={'Closed':'Closed','Drainable':'Drainable','High flow':'High flow','Uro':'Uro (urostomy)'};
+/* Continence rows have no category in the sheet, so they are sorted by description.
+   Add or reorder rules here. Anything that matches no rule lands in "Other continence". */
+const CONT_ORDER=['Intermittent catheters','Intermittent catheter sets','Foley catheters','Suprapubic catheters (Cystofix)','Urine drainage bags','Bladder irrigation','Accessories'];
+const CONT_RULES=[
+  ['Intermittent catheter sets',/^ACTREEN\b.*\bSET\b/],
+  ['Intermittent catheters',/^ACTREEN\b/],
+  ['Foley catheters',/\bCATH FOLEY\b/],
+  ['Suprapubic catheters (Cystofix)',/^CYSTOFIX\b/],
+  ['Bladder irrigation',/^URO[ -]?TAINER\b/],
+  ['Accessories',/\b(STRAP|KLETT)\b/],
+  ['Urine drainage bags',/\b(BAGS?|TRIBAG|UREOFIX)\b/]
+];
+const CONT_INFO={
+  'Intermittent catheters':'Intermittent catheter.',
+  'Intermittent catheter sets':'Intermittent catheter set.',
+  'Foley catheters':'Indwelling Foley catheter.',
+  'Suprapubic catheters (Cystofix)':'Cystofix suprapubic catheter system.',
+  'Urine drainage bags':'Urine drainage bag.',
+  'Bladder irrigation':'Bladder irrigation solution.',
+  'Accessories':'Continence accessory.'
+};
+const COL_HEX={Beige:'#e6cdae','Split cover beige':'#e6cdae',Transparent:'#dcebf0',Standard:'#dbe6e8',White:'#f4f4f4',Black:'#2b2f31'};
+const COL_ORDER=['Beige','Split cover beige','Transparent','White'];
+const LEN_ORDER=['Mini','Midi','Maxi'];
+
+/* ---- text helpers ---- */
+const clean=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+const WORDS={TRSP:'Transparent',TRP:'Transparent',TRANSP:'Transparent',SC:'Split cover',CVX:'Convex',HF:'High Flow',RUP:"Roll'up",CL:'Closed',BGE:'Beige',NACL:'NaCl',ML:'mL',CM:'cm',PCS:'pcs',TURP:'TURP',SP:'SP',CE:'CE',INT:'INT',BAL:'BAL',SG:'SG',CTF:'CTF',BV:'BV'};
+const UNITS={ML:'mL',L:'L',CM:'cm',MM:'mm',GMS:'gms'};
+function prettyWord(w){
+  if(w==="ROLL'UP") return "Roll'up";
+  let m;
+  if((m=w.match(/^CH0*(\d+)$/))) return 'Ch '+m[1];
+  if((m=w.match(/^(\()?(\d+(?:[.,]\d+)?)(ML|L|CM|MM|GMS)(\))?$/))) return (m[1]||'')+m[2]+' '+UNITS[m[3]]+(m[4]||'');
+  if((m=w.match(/^(\d+)X(\d+)ML$/))) return m[1]+' × '+m[2]+' mL';
+  if(/^\d/.test(w)) return w;
+  return w.split(/(['\-\/])/).map(p=>/^['\-\/]$/.test(p)?p:(WORDS[p]||p.replace(/[A-Za-z]+/g,s=>s[0]+s.slice(1).toLowerCase()))).join('');
+}
+function pretty(s){
+  const t=clean(s).toUpperCase().split(' '), out=[];
+  for(let i=0;i<t.length;i++){
+    if((t[i]==='W'||t[i]==='WO')&&t[i+1]==='GUIDE'){ out.push(t[i]==='W'?'With':'Without'); continue; }
+    out.push(prettyWord(t[i]));
+  }
+  return out.join(' ');
+}
+const sizeFmt=s=>clean(s).replace(/(\d)\s*(mm|cm)\b/gi,'$1 $2').replace(/(\d)-(\d)/g,'$1–$2');
+const holeFmt=h=>{ const m=clean(h).match(/^(CTF|PC)\s*(\d+)(?:-(\d+))?$/i); if(!m) return clean(h);
+  return (m[1].toUpperCase()==='CTF'?'Cut-to-fit ':'Pre-cut ')+m[2]+(m[3]?'–'+m[3]:'')+' mm'; };
+const lenOf=d=>{ const m=d.toUpperCase().match(/\b(MINI|MIDI|MAXI)\b/); return m?m[1][0]+m[1].slice(1).toLowerCase():''; };
+const listJoin=a=>a.length<3?a.join(' and '):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+function pouchTypeOf(d){
+  d=d.toUpperCase();
+  if(/\bHIGH FLOW\b|\bHF\b/.test(d)) return 'High flow';
+  if(/\bURO\b/.test(d)) return 'Uro';
+  if(/ROLL'?UP|\bRUP\b/.test(d)) return 'Drainable';
+  if(/\bCLOSED\b|\bCL\b/.test(d)) return 'Closed';
+  return '';
+}
+function contourOf(d){
+  d=d.toUpperCase();
+  if(/O.?CVX/.test(d)) return 'Soft convex';
+  if(/\bCVX\b/.test(d)) return 'Convex';
+  if(/\bACTIVE\b/.test(d)) return 'Soft flat';
+  return 'Flat';
+}
+
+/* ---- CSV (for the live option) ---- */
+function parseCSV(text){
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(f); f=''; rows.push(row); row=[]; }
+    else f+=c;
+  }
+  if(f!==''||row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+function rowsFromCSV(text){
+  const t=parseCSV(text.replace(/^﻿/,'')); if(!t.length) return [];
+  const head=t[0].map(h=>clean(h).toLowerCase());
+  const idx=SHEET_HEADERS.map((h,i)=>{ const j=head.indexOf(h); return j>=0?j:i; });
+  return t.slice(1).filter(r=>r.some(c=>clean(c))).map(r=>idx.map(j=>r[j]));
+}
+
+/* ---- build products from rows ---- */
+const toRow=a=>{ const r={}; SHEET_COLS.forEach((k,i)=>r[k]=clean(a[i])); r.desc=r.desc.replace(/,\s+/g,' '); r.ringN=parseInt(r.ring,10)||0; return r; };
+const SIZEISH=/^(?:\d+(?:[\/.,-]\d+)*|BEIGE|BGE|TRSP|TRP|TRANSP|TRANSPARENT|SC|SPLIT|COVER|MINI|MIDI|MAXI|CTF|CUTTOFIT|PC|B\d+|\d+MM)$/;
+const COLOUR_WORD=/^(BEIGE|BGE|WHITE|TRSP|TRP|TRANSP|TRANSPARENT|BLACK|BV)$/;
+
+function groupRows(rows){
+  const words=s=>s.toUpperCase().split(' ');
+  const lead=(a,b)=>{ let n=0; while(n<a.length&&n<b.length&&a[n]===b[n]) n++; return n; };
+  const groups=[], blanks=[];
+  rows.forEach((r,i)=>{ r.idx=i;
+    if(r.web) groups.push({area:r.area.toLowerCase(),web:r.web,first:words(r.desc),at:i,rows:[r]}); else blanks.push(r); });
+  blanks.forEach(r=>{
+    const w=words(r.desc), area=r.area.toLowerCase();
+    let prev=null; groups.forEach(g=>{ if(g.at<r.idx&&g.area===area) prev=g; });
+    const l0=prev?lead(prev.first,w):0;
+    let best=null, bl=0; groups.forEach(g=>{ if(g.area===area){ const l=lead(g.first,w); if(l>0&&l>=bl){ bl=l; best=g; } } });
+    if(prev&&l0>=2) prev.rows.push(r);                 /* normal case: continues the group above */
+    else if(best&&bl>=2&&bl>l0) best.rows.push(r);     /* row missed when merging: joins the group it matches best */
+    else if(prev&&l0>0) prev.rows.push(r);
+    else groups.push({area,web:'',first:w,at:r.idx,rows:[r]});
+  });
+  groups.forEach(g=>g.rows.sort((a,b)=>a.idx-b.idx));
+  return groups.sort((a,b)=>a.rows[0].idx-b.rows[0].idx);
+}
+
+function buildCatalog(rawRows){
+  const rows=rawRows.map(toRow).filter(r=>r.code&&r.desc);
+  const out=[];
+  groupRows(rows).forEach(g=>{
+    /* the sheet's web-shop column says "Not promoted. Old product." for items that should stay out of the shop */
+    if(g.web&&!/^https?:/i.test(g.web)&&/not promoted|old product/i.test(g.web)) return;
+    const cont=/continence/.test(g.area), r0=g.rows[0];
+    const f={id:'p'+out.length,cat:cont?'continence':'ostomy',url:/^https?:/i.test(g.web)?g.web:'',variants:[]};
+
+    /* name = words shared by every row in the group, minus sizes, colours and lengths */
+    const ws=g.rows.map(r=>r.desc.toUpperCase().split(' '));
+    let n=0; while(ws.every(w=>n<w.length&&w[n]===ws[0][n])) n++;
+    let pre=ws[0].slice(0,n), suf=[];
+    if(cont){
+      const last=ws[0][ws[0].length-1];
+      if(ws.length>1&&n<ws[0].length&&/^\d+CM$/.test(last)&&ws.every(w=>w[w.length-1]===last)) suf=[last];
+      pre=pre.filter(t=>!/^CH\d+$/.test(t)&&t!=='BV');
+    }else{
+      while(pre.length>1&&SIZEISH.test(pre[pre.length-1])) pre.pop();
+      pre=pre.filter(t=>t!=='BV');
+    }
+    const nameToks=pre.concat(suf);
+    f.name=pretty(nameToks.join(' '))||pretty(r0.desc);
+
+    if(cont){
+      const catRaw=(g.rows.find(r=>r.category)||{}).category||'';
+      const d0=r0.desc.toUpperCase();
+      f.group=/accessor/i.test(catRaw)?'Accessories':((CONT_RULES.find(x=>x[1].test(d0))||[])[0]||'Other continence');
+      f.kind=/catheter|Cystofix/.test(f.group)?'catheter':f.group==='Urine drainage bags'?'bag':'accessory';
+      f.crumbs=[f.group];
+    }else{
+      const catRaw=(g.rows.find(r=>r.category)||{}).category||'';
+      const sub=(g.rows.find(r=>r.sub)||{}).sub||'';
+      f.sys=/accessor/i.test(catRaw)?'Accessories':(catRaw||'Other');
+      if(f.sys==='Accessories'){ f.kind='accessory'; f.group='Accessories'; f.sub=sub; f.crumbs=['Accessories'].concat(sub?[sub]:[]); }
+      else{
+        f.part=(/^2 Piece/.test(f.sys)&&sub==='Baseplate')?'Baseplate':'Pouch';
+        f.kind=f.part==='Baseplate'?'baseplate':'pouch';
+        if(f.part==='Baseplate'){ f.contour=r0.baseType||'Flat'; f.type=''; f.crumbs=[f.sys,f.contour+' baseplate']; }
+        else{ f.type=r0.pouchType||pouchTypeOf(r0.desc)||'Closed'; f.contour=f.sys==='1 Piece'?contourOf(r0.desc):''; f.crumbs=[f.sys,f.type+' pouch']; f.name+=' Pouch'; }
+      }
+    }
+
+    g.rows.forEach(r=>{
+      const colour=r.colour||'Standard', len=lenOf(r.desc);
+      let size;
+      if(!cont&&f.sys!=='Accessories'){
+        const hole=holeFmt(r.hole), ring=r.ringN?r.ringN+' mm coupling':'';
+        size=(f.part==='Baseplate'?[ring,hole]:f.sys==='1 Piece'?[len,hole]:[len,ring]).filter(Boolean).join(' · ');
+      }else{
+        const pool=nameToks.slice();
+        const rest=r.desc.toUpperCase().split(' ').filter(t=>{ const i=pool.indexOf(t); if(i>=0){ pool.splice(i,1); return false; } return !COLOUR_WORD.test(t); });
+        size=[sizeFmt(r.size),pretty(rest.join(' '))].filter(Boolean).join(' · ');
+      }
+      f.variants.push({code:r.code,colour,size:size||'Standard',ring:r.ringN,len,full:pretty(r.desc),pack:r.packQty,uom:r.uom,idx:r.idx});
+    });
+
+    if(!cont){ /* colour, then length, then sheet order */
+      const rank=(a,v)=>{ const i=a.indexOf(v); return i<0?a.length:i; };
+      f.variants.sort((a,b)=>rank(COL_ORDER,a.colour)-rank(COL_ORDER,b.colour)||rank(LEN_ORDER,a.len)-rank(LEN_ORDER,b.len)||a.idx-b.idx);
+    }
+    const seen={}; f.variants.forEach(v=>{ const k=v.colour+'|'+v.size; seen[k]=(seen[k]||0)+1; });
+    f.variants.forEach(v=>{ if(seen[v.colour+'|'+v.size]>1) v.size+=' ('+v.code+')'; });
+    f.desc=describe(f);
+    out.push(f);
+  });
+  return out;
+}
+
+function describe(f){
+  const vs=f.variants, cols=[...new Set(vs.map(v=>v.colour))].filter(c=>c!=='Standard');
+  const lens=LEN_ORDER.filter(l=>vs.some(v=>v.len===l));
+  const rings=[...new Set(vs.map(v=>v.ring).filter(Boolean))].sort((a,b)=>a-b);
+  const opening=[vs.some(v=>/Cut-to-fit/.test(v.size))&&'cut-to-fit',vs.some(v=>/Pre-cut/.test(v.size))&&'pre-cut'].filter(Boolean);
+  const bits=[];
+  if(f.cat==='continence'){ bits.push(CONT_INFO[f.group]||'Continence product.'); if(vs.length>1) bits.push(vs.length+' options available.'); return bits.join(' '); }
+  if(f.sys==='Accessories') return 'Ostomy accessory'+(f.sub?' – '+f.sub.toLowerCase():'')+'.';
+  const coupling=/Mechanical/.test(f.sys)?'mechanical':'adhesive';
+  if(f.part==='Baseplate') bits.push('Two-piece '+coupling+' coupling '+f.contour.toLowerCase()+' baseplate.');
+  else if(f.sys==='1 Piece') bits.push('One-piece '+f.type.toLowerCase()+' pouch with a '+f.contour.toLowerCase()+' baseplate.');
+  else bits.push('Two-piece '+coupling+' coupling '+f.type.toLowerCase()+' pouch.');
+  if(lens.length) bits.push('Available in '+listJoin(lens.map(l=>l.toLowerCase()))+' length'+(lens.length>1?'s':'')+'.');
+  if(cols.length>1) bits.push('Colours: '+listJoin(cols.map(c=>c.toLowerCase()))+'.');
+  if(rings.length) bits.push('Coupling rings: '+listJoin(rings.map(r=>r+' mm'))+'.');
+  if(opening.length) bits.push('Opening: '+listJoin(opening)+'.');
+  return bits.join(' ');
+}
+
+let CATALOG=buildCatalog(SNAPSHOT);
+
+/* ---------- Product illustrations (generic, drawn in SVG) ---------- */
+let uid=0;
+function art(f,colour){
+  const id='g'+(uid++), c=colour||'Standard';
+  const fill=c==='Transparent'?'#e4f1f5':/split/i.test(c)?`url(#${id})`:(COL_HEX[c]||'#e6cdae');
+  const stroke=c==='Transparent'?'#6a9aa9':'#7a5a3c';
+  const dash=c==='Transparent'?' stroke-dasharray="5 4"':'';
+  const defs=`<defs><linearGradient id="${id}" x1="0" x2="1"><stop offset=".5" stop-color="#e6cdae"/><stop offset=".5" stop-color="#f6efe2"/></linearGradient></defs>`;
+  let body='';
+  const kind=f.kind||(f.sys==='Accessories'?'accessory':(f.part==='Baseplate'?'baseplate':'pouch'));
+  const convex=/convex/i.test(f.contour||'');
+  if(kind==='pouch'){
+    const drain=f.type&&f.type!=='Closed';
+    body=`<path d="M62 30Q100 12 138 30Q158 100 140 150Q100 168 60 150Q42 100 62 30Z" fill="${fill}" stroke="${stroke}" stroke-width="3"${dash}/>
+      <circle cx="100" cy="54" r="15" fill="#fff" stroke="${stroke}" stroke-width="3"/>
+      ${convex?`<circle cx="100" cy="54" r="24" fill="none" stroke="${stroke}" stroke-width="2" opacity=".6"/>`:''}
+      ${drain?`<path d="M72 160h56v16q-28 8-56 0Z" fill="${fill}" stroke="${stroke}" stroke-width="3"${dash}/><path d="M78 170h44" stroke="${stroke}" stroke-width="3"/>`:''}`;
+  }else if(kind==='baseplate'){
+    body=`<circle cx="100" cy="100" r="70" fill="${fill}" stroke="${stroke}" stroke-width="3"/>
+      <circle cx="100" cy="100" r="22" fill="#fff" stroke="${stroke}" stroke-width="3"/>
+      <circle cx="100" cy="100" r="38" fill="none" stroke="${stroke}" stroke-width="3" stroke-dasharray="3 6"/>
+      ${convex?`<circle cx="100" cy="100" r="52" fill="none" stroke="${stroke}" stroke-width="2" opacity=".6"/>`:''}`;
+  }else if(kind==='catheter'){
+    body=`<path d="M40 160L150 50" stroke="#6fb6c9" stroke-width="14" stroke-linecap="round"/><path d="M146 38l30 30-18 18-30-30Z" fill="#cfe7ee" stroke="#4a8fa3" stroke-width="3"/><circle cx="46" cy="154" r="4" fill="#fff"/>`;
+  }else if(kind==='bag'){
+    body=`<path d="M100 12v34" stroke="#6fb6c9" stroke-width="7" stroke-linecap="round"/><path d="M58 52h84v90Q100 176 58 142Z" fill="#e9f4f7" stroke="#4a8fa3" stroke-width="3"/><path d="M70 84h60M70 104h60M70 124h60" stroke="#4a8fa3" stroke-width="2" opacity=".5"/>`;
+  }else{
+    body=`<rect x="64" y="46" width="72" height="120" rx="14" fill="${c==='Black'?'#2b2f31':'#e8eef0'}" stroke="#587073" stroke-width="3"/><rect x="76" y="26" width="48" height="26" rx="6" fill="#0b7a6b"/><rect x="78" y="82" width="44" height="40" rx="6" fill="#fff" opacity=".85"/>`;
+  }
+  return `<svg viewBox="0 0 200 200" aria-hidden="true">${defs}${body}</svg>`;
+}
+
+/* ---------- State & helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const S={persona:null,cat:null,a:'',b:'',c:'',basket:[],cur:null,sel:{}};
+function reveal(id){
+  const el=$(id); const was=el.hidden; el.hidden=false;
+  requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'}),60));
+  return was;
+}
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
+}
+
+/* ---------- Step 1: persona ---------- */
+document.querySelectorAll('[data-persona]').forEach(b=>b.addEventListener('click',()=>{
+  S.persona=b.dataset.persona;
+  $('#bar').hidden=false;
+  $('#personaTxt').textContent=S.persona==='nurse'?'Nurse (hospital)':'Individual';
+  $('#catSub').textContent=S.persona==='nurse'
+    ?'Choose the product area you are requesting samples for on behalf of your hospital or patients.'
+    :'Choose the product area you are shopping for yourself.';
+  reveal('#pCat');
+}));
+$('#persona').onclick=()=>{ document.body.classList.remove('checkout'); $('#hero').scrollIntoView({behavior:reduce?'auto':'smooth'}); };
+
+/* ---------- Step 2: category ---------- */
+document.querySelectorAll('[data-cat]').forEach(b=>b.addEventListener('click',()=>{
+  S.cat=b.dataset.cat; S.a=S.b=S.c='';
+  document.querySelectorAll('[data-cat]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#pGrid').hidden=true; $('#hFilter').textContent=S.cat==='ostomy'?'What kind of ostomy product?':'What kind of continence product?';
+  renderDropdowns(); reveal('#pFilter');
+}));
+
+/* ---------- Step 3: dropdowns ---------- */
+function ordered(list,order){ const u=[...new Set(list)]; return u.sort((a,b)=>{ const x=order.indexOf(a), y=order.indexOf(b); return (x<0?99:x)-(y<0?99:y); }); }
+const is2=a=>/^2 Piece/.test(a||'');
+function sysOptions(){ return ordered(CATALOG.filter(f=>f.cat==='ostomy').map(f=>f.sys),SYS_ORDER).map(v=>[v,v]); }
+function typeOptions(){ return ordered(CATALOG.filter(f=>f.cat==='ostomy'&&f.sys===S.a&&f.part==='Pouch').map(f=>f.type),TYPE_ORDER).map(v=>[v,TYPE_LABEL[v]||v]); }
+function ringOptions(){ const set=new Set(); CATALOG.forEach(f=>{ if(f.cat==='ostomy'&&f.sys===S.a&&f.part==='Pouch'&&f.type===S.b) f.variants.forEach(v=>v.ring&&set.add(v.ring)); }); return [...set].sort((a,b)=>a-b).map(n=>[String(n),n+' mm']); }
+function contOptions(){ return ordered(CATALOG.filter(f=>f.cat==='continence').map(f=>f.group),CONT_ORDER).map(v=>[v,v]); }
+function select(id,label,ph,opts,val,hint){
+  return `<div class="dd"><label for="${id}">${label}</label><select id="${id}" class="${val?'set':''}"><option value="" ${val?'':'selected'} disabled>${ph}</option>${opts.map(o=>`<option value="${esc(o[0])}" ${o[0]===val?'selected':''}>${esc(o[1])}</option>`).join('')}</select>${hint?`<div class="h">${hint}</div>`:''}</div>`;
+}
+function renderDropdowns(){
+  let h='';
+  if(S.cat==='ostomy'){
+    h+=select('dA','System','Choose a system',sysOptions(),S.a);
+    if(S.a&&S.a!=='Accessories') h+=select('dB','Pouch type','Choose a pouch type',typeOptions(),S.b);
+    if(is2(S.a)&&S.b) h+=select('dC','Coupling ring size','Choose a size',ringOptions(),S.c,'Matching pouches and baseplates are shown together.');
+  }else{
+    h+=select('dA','Product type','What are you looking for?',contOptions(),S.a);
+  }
+  $('#dds').innerHTML=h;
+}
+$('#dds').addEventListener('change',e=>{
+  const id=e.target.id, v=e.target.value;
+  if(id==='dA'){S.a=v;S.b='';S.c='';}
+  if(id==='dB'){S.b=v;S.c='';}
+  if(id==='dC'){S.c=v;}
+  renderDropdowns();
+  const f=$('#'+id); if(f) f.focus({preventScroll:true});
+  const ready=S.cat==='ostomy'
+    ? (S.a==='Accessories'||(S.a==='1 Piece'&&S.b)||(is2(S.a)&&S.b&&S.c))
+    : !!S.a;
+  if(ready) showGrid(); else $('#pGrid').hidden=true;
+});
+
+/* ---------- Step 4: grid ---------- */
+function matches(){
+  const out=[];
+  CATALOG.forEach(f=>{
+    if(f.cat!==S.cat) return;
+    if(S.cat==='continence'){ if(f.group===S.a) out.push({f,variants:f.variants}); return; }
+    if(f.sys!==S.a) return;
+    if(S.a==='Accessories'||S.a==='1 Piece'){ if(S.a==='Accessories'||f.type===S.b) out.push({f,variants:f.variants}); return; }
+    if(f.part==='Pouch'&&f.type!==S.b) return;
+    const vs=f.variants.filter(v=>String(v.ring)===S.c);
+    if(vs.length) out.push({f,variants:vs});
+  });
+  return out;
+}
+function tile(m){
+  const f=m.f, v0=m.variants[0], cols=[...new Set(m.variants.map(v=>v.colour))];
+  const mt=[m.variants.length+(m.variants.length===1?' option':' options'),cols.length>1?cols.length+' colours':''].filter(Boolean).join(' · ');
+  return `<button class="tile" type="button" data-fid="${f.id}"><div class="img">${art(f,v0.colour)}</div><div class="in"><div class="nm">${esc(f.name)}</div><div class="mt">${esc(mt)}</div></div></button>`;
+}
+function showGrid(){
+  const ms=matches(), firstTime=$('#pGrid').hidden;
+  $('#gridView').hidden=false; $('#detailView').hidden=true;
+  const crumbs=[S.persona==='nurse'?'Nurse':'Individual',S.cat==='ostomy'?'Ostomy':'Continence',S.a,S.b,S.c&&S.c+' mm coupling'].filter(Boolean);
+  $('#crumbs').innerHTML=crumbs.map(c=>`<span class="pill">${esc(c)}</span>`).join('');
+  $('#gSub').textContent=ms.length?`${ms.length} ${ms.length===1?'product':'products'} match. Tap one to choose colour and size.`:'';
+  $('#notice').innerHTML='';
+  let html='';
+  if(S.cat==='ostomy'&&is2(S.a)){
+    const pouches=ms.filter(m=>m.f.part==='Pouch'), plates=ms.filter(m=>m.f.part==='Baseplate');
+    html+=`<h3 class="grp">${S.b} pouches</h3>`+(pouches.length?`<div class="tiles">${pouches.map(tile).join('')}</div>`:'<div class="empty">No pouches at this size.</div>');
+    html+=`<h3 class="grp">Matching baseplates</h3>`+(plates.length?`<div class="tiles">${plates.map(tile).join('')}</div>`:'<div class="empty">No baseplates at this size.</div>');
+  }else html=ms.length?`<div class="tiles">${ms.map(tile).join('')}</div>`:'<div class="empty">No products match these choices.</div>';
+  $('#tiles').innerHTML=html;
+  $('#tiles').dataset.ms=''; S.ms=ms;
+  if(firstTime) reveal('#pGrid'); else $('#pGrid').hidden=false;
+}
+$('#tiles').addEventListener('click',e=>{
+  const t=e.target.closest('[data-fid]'); if(!t) return;
+  const m=S.ms.find(x=>x.f.id===t.dataset.fid); openDetail(m);
+});
+
+/* ---------- Product detail ---------- */
+function openDetail(m){
+  S.cur=m; S.sel={colour:[...new Set(m.variants.map(v=>v.colour))][0],code:''};
+  const sizes=m.variants.filter(v=>v.colour===S.sel.colour); if(sizes.length===1) S.sel.code=sizes[0].code;
+  $('#gridView').hidden=true; $('#detailView').hidden=false; renderDetail();
+  $('#pGrid').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+}
+function swStyle(c){
+  return /split/i.test(c)?'linear-gradient(90deg,#e6cdae 50%,#f6efe2 50%)':c==='Transparent'?'linear-gradient(135deg,#fff 45%,#cfe3e8 46%)':(COL_HEX[c]||'#ddd');
+}
+function renderDetail(){
+  const y=window.scrollY;
+  const {f,variants}=S.cur, cols=[...new Set(variants.map(v=>v.colour))];
+  const sizes=variants.filter(v=>v.colour===S.sel.colour);
+  const cur=variants.find(v=>v.code===S.sel.code);
+  const inReq=cur&&S.basket.some(b=>b.code===cur.code);
+  const rows=variants.map(v=>{
+    const added=S.basket.some(b=>b.code===v.code);
+    const label=v.full||(f.name+' – '+v.size);
+    const showCol=cols.length>1||v.colour!=='Standard';
+    return `<tr class="${v.code===S.sel.code?'sel':''}">
+      <td class="c" data-label="Code">${esc(v.code)}</td>
+      <td class="p" data-label="Product"><button type="button" class="pn" data-pick="${esc(v.code)}">${esc(label)}</button>${showCol?`<span class="pc"><i style="background:${swStyle(v.colour)}"></i>${esc(v.colour)}</span>`:''}</td>
+      <td class="s" data-label="Size">${esc(v.size)}</td>
+      <td class="o"><button type="button" class="ord" data-order="${esc(v.code)}" aria-pressed="${added}" aria-label="Order free sample: ${esc(label)}">${added?'✓ Added':'Order'}</button></td></tr>`;
+  }).join('');
+  $('#detailView').innerHTML=`
+    <div class="detailTop">
+      <button class="back" id="backBtn" type="button">← Back to products</button>
+      <div class="detail">
+        <div class="pic" id="pic">${art(f,S.sel.colour)}</div>
+        <div>
+          <div class="crumbs" style="margin-bottom:10px">${[f.cat==='ostomy'?'Ostomy':'Continence'].concat(f.crumbs||[]).filter(Boolean).map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div>
+          <span class="free">FREE sample</span>
+          <h2>${esc(f.name)}</h2>
+          <p>${esc(f.desc)}</p>
+          ${f.url?`<p><a href="${esc(f.url)}" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700">View full product details ↗</a></p>`:''}
+          ${cols.length>1?`<div class="fld"><b>Colour: <span style="font-weight:400">${esc(S.sel.colour)}</span></b><div class="sw" role="group" aria-label="Colour">${cols.map(c=>`<button type="button" class="swb" data-col="${esc(c)}" aria-pressed="${c===S.sel.colour}"><i style="background:${swStyle(c)}"></i>${esc(c)}</button>`).join('')}</div></div>`:''}
+          <div class="fld"><b><label for="sizeSel">Size</label></b>
+            <select id="sizeSel"><option value="" ${S.sel.code?'':'selected'} disabled>Select a size</option>${sizes.map(v=>`<option value="${esc(v.code)}" ${v.code===S.sel.code?'selected':''}>${esc(v.size)}</option>`).join('')}</select>
+            <div class="code">${cur?'Product code: '+esc(cur.code):''}</div></div>
+          <button class="cta" id="addBtn" type="button" ${cur?'':'disabled'}>${inReq?'✓ In your request':'Add to request'}</button>
+          <button class="down" id="toTable" type="button">↓ All sizes &amp; codes (${variants.length})</button>
+        </div>
+      </div>
+    </div>
+    <section class="vt" id="variantTable" aria-labelledby="vtH">
+      <h3 id="vtH">All sizes &amp; codes</h3>
+      <p class="vtsub">Order a free sample of any option below.</p>
+      <table class="vt-t">
+        <thead><tr><th scope="col">Code</th><th scope="col">Product</th><th scope="col">Size</th><th scope="col">FREE Sample</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </section>`;
+  window.scrollTo(0,y);
+}
+function addToRequest(v){
+  if(S.basket.some(b=>b.code===v.code)){ toast('Already in your request'); return; }
+  S.basket.push({code:v.code,name:S.cur.f.name,colour:v.colour,size:v.size,f:S.cur.f}); updBasket(); toast('Added to your request');
+}
+$('#detailView').addEventListener('click',e=>{
+  if(e.target.closest('#backBtn')){ $('#detailView').hidden=true; $('#gridView').hidden=false; $('#pGrid').scrollIntoView({behavior:reduce?'auto':'smooth'}); return; }
+  if(e.target.closest('#toTable')){ $('#variantTable').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'}); return; }
+  const c=e.target.closest('[data-col]');
+  if(c){ S.sel.colour=c.dataset.col; const sizes=S.cur.variants.filter(v=>v.colour===S.sel.colour); S.sel.code=sizes.length===1?sizes[0].code:''; renderDetail(); return; }
+  if(e.target.closest('#addBtn')){
+    const v=S.cur.variants.find(x=>x.code===S.sel.code); if(!v) return;
+    addToRequest(v); renderDetail(); return;
+  }
+  const pk=e.target.closest('[data-pick]');
+  if(pk){
+    const v=S.cur.variants.find(x=>x.code===pk.dataset.pick);
+    S.sel={colour:v.colour,code:v.code}; renderDetail();
+    $('#pGrid').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'}); return;
+  }
+  const od=e.target.closest('[data-order]');
+  if(od){
+    const v=S.cur.variants.find(x=>x.code===od.dataset.order);
+    S.sel={colour:v.colour,code:v.code}; addToRequest(v); renderDetail();
+    const again=$('[data-order="'+v.code+'"]'); if(again) again.focus({preventScroll:true});
+  }
+});
+$('#detailView').addEventListener('change',e=>{
+  if(e.target.id==='sizeSel'){ S.sel.code=e.target.value; renderDetail(); const s=$('#sizeSel'); s&&s.focus({preventScroll:true}); }
+});
+
+/* ---------- Basket drawer ---------- */
+function updBasket(){ $('#bcount').textContent=S.basket.length; if(document.body.classList.contains('checkout')) renderSummary(); }
+$('#basketBtn').onclick=openDrawer;
+function openDrawer(){
+  const who=S.persona==='nurse'?'for your hospital or patients':'for yourself';
+  $('#drawerHost').innerHTML=`<div class="scrim" id="scrim"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-label="Your request">
+    <div style="display:flex;justify-content:space-between;align-items:start"><div><h3>Your request</h3><div class="hint" style="color:var(--muted);font-size:.9rem">Samples ${who}</div></div><button class="x" id="closeD" type="button" aria-label="Close">✕</button></div>
+    ${S.basket.length?`<ul>${S.basket.map(b=>`<li>${art(b.f,b.colour)}<div><b>${esc(b.name)}</b><br><small>${b.colour!=='Standard'?esc(b.colour)+' · ':''}${esc(b.size)} · ${esc(b.code)}</small></div><button class="x" data-rm="${esc(b.code)}" type="button" aria-label="Remove ${esc(b.name)}">✕</button></li>`).join('')}</ul>`:'<p style="color:var(--muted);flex:1">Nothing added yet.</p>'}
+    <button class="cta" id="contD" type="button" ${S.basket.length?'':'disabled'}>Checkout</button>
+  </aside>`;
+  $('#closeD').focus();
+}
+$('#drawerHost').addEventListener('click',e=>{
+  if(e.target.id==='scrim'||e.target.id==='closeD'){ $('#drawerHost').innerHTML=''; return; }
+  const r=e.target.closest('[data-rm]');
+  if(r){ S.basket=S.basket.filter(b=>b.code!==r.dataset.rm); updBasket(); openDrawer(); if(!$('#detailView').hidden) renderDetail(); return; }
+  if(e.target.id==='contD'){ $('#drawerHost').innerHTML=''; openCheckout(); }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('#drawerHost').innerHTML=''; });
+
+/* ---------- Checkout ---------- */
+S.form={}; S.reqFor=''; S.consent={mkt:false,priv:false};
+const STATES=['New South Wales','Victoria','Queensland','Western Australia','South Australia','Tasmania','ACT','NT'];
+const POSTR=[[800,999,'NT'],[200,299,'ACT'],[2600,2618,'ACT'],[2900,2920,'ACT'],[2000,2599,'New South Wales'],[2619,2899,'New South Wales'],[2921,2999,'New South Wales'],[3000,3999,'Victoria'],[8000,8999,'Victoria'],[4000,4999,'Queensland'],[9000,9999,'Queensland'],[5000,5799,'South Australia'],[6000,6797,'Western Australia'],[7000,7999,'Tasmania']];
+function stateFromPostcode(pc){ const n=+pc; for(const [a,b,s] of POSTR) if(n>=a&&n<=b) return s; return ''; }
+const EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function inp(id,label,o={}){
+  const v=S.form[id]||'';
+  return `<div class="fg${o.wide?' wide':''}"><label for="${id}">${label}${o.req?' <span class="rq" aria-hidden="true">*</span>':''}</label>
+    <input id="${id}" name="${id}" type="${o.type||'text'}" value="${esc(v)}" placeholder="${esc(o.ph||'')}" autocomplete="${o.ac||'off'}"${o.mode?` inputmode="${o.mode}"`:''}${o.max?` maxlength="${o.max}"`:''}${o.req?' aria-required="true"':''} aria-describedby="er_${id}">
+    <div class="er" id="er_${id}" role="alert"></div></div>`;
+}
+function stateField(){
+  return `<div class="fg"><label for="state">State <span class="rq" aria-hidden="true">*</span></label>
+    <select id="state" aria-required="true" aria-describedby="er_state"><option value="" ${S.form.state?'':'selected'} disabled>Select a state</option>${STATES.map(s=>`<option ${S.form.state===s?'selected':''}>${s}</option>`).join('')}</select><div class="er" id="er_state" role="alert"></div></div>`;
+}
+function countryField(){
+  return `<div class="fg"><label for="country">Country</label><select id="country" disabled><option>Australia</option></select></div>`;
+}
+function salutField(){
+  return `<fieldset class="fs"><legend>Salutation</legend><div class="rads">${['Mr.','Mrs.','Neutral'].map((s,i)=>`<label class="rad"><input type="radio" name="salut" value="${s}" ${S.form.salut===s?'checked':''}><span>${s}</span></label>`).join('')}</div></fieldset>`;
+}
+function renderCheckout(){
+  const nurse=S.persona==='nurse', host=$('#pCheckout');
+  if(!S.basket.length){
+    host.innerHTML=`<div class="coWrap"><div class="empty"><p>Your request is empty.</p><button class="cta" type="button" id="coBack">Choose products</button></div></div>`; return;
+  }
+  const clinician=`<h3 class="coH">Clinician details</h3><div class="fgrid">
+      ${inp('first',"Clinician’s First Name",{req:1,ph:'Jane',ac:'given-name'})}
+      ${inp('last',"Clinician’s Last Name",{req:1,ph:'Smith',ac:'family-name'})}
+      ${inp('org','Organization / Hospital / Institution',{req:1,ph:'Hospital or clinic name',ac:'organization'})}
+      ${inp('func','Function',{req:1,ph:'Function',ac:'organization-title'})}
+      ${inp('email','Business Email',{req:1,type:'email',wide:1,ph:'name@hospital.com.au',ac:'email'})}
+    </div>
+    <h3 class="coH">Delivery details</h3><div class="fgrid">
+      ${inp('rname',"Receiver’s name",{req:1,ph:'Jane Smith',ac:'name'})}
+      ${inp('street','Street',{req:1,ph:'Street',ac:'street-address'})}
+      ${inp('postcode','Postal Code',{req:1,ph:'Postal Code',mode:'numeric',max:4,ac:'postal-code'})}
+      ${inp('city','City',{req:1,ph:'City',ac:'address-level2'})}
+      ${inp('phone','Phone',{req:1,type:'tel',ph:'Phone',ac:'tel'})}
+      ${inp('mobile','Mobile Phone',{req:1,type:'tel',ph:'Mobile phone',ac:'tel'})}
+      ${stateField()}${countryField()}
+    </div>
+    <fieldset class="fs" aria-describedby="er_reqFor"><legend>This request is for <span class="rq" aria-hidden="true">*</span></legend>
+      <div class="rads col">${['Discharge Pack','Ward Stock'].map((s,i)=>`<label class="rad"><input type="radio" name="reqFor" id="rf${i}" value="${s}" ${S.reqFor===s?'checked':''}><span>${s}</span></label>`).join('')}</div>
+      <div class="er" id="er_reqFor" role="alert"></div></fieldset>`;
+  const patient=`<h3 class="coH">Your details</h3><div class="fgrid">
+      ${inp('first','First name',{req:1,ph:'Jane',ac:'given-name'})}
+      ${inp('last','Last name',{req:1,ph:'Smith',ac:'family-name'})}
+      ${inp('email','Email',{req:1,type:'email',wide:1,ph:'you@example.com',ac:'email'})}
+      ${inp('phone','Phone',{type:'tel',ph:'Phone',ac:'tel'})}
+      ${inp('mobile','Mobile phone',{type:'tel',ph:'Mobile phone',ac:'tel'})}
+      <div class="fg wide hintTxt">Please give at least one contact number.</div>
+    </div>
+    <h3 class="coH">Delivery address</h3><div class="fgrid">
+      ${inp('street','Street',{req:1,wide:1,ph:'Street',ac:'street-address'})}
+      ${inp('postcode','Postal Code',{req:1,ph:'Postal Code',mode:'numeric',max:4,ac:'postal-code'})}
+      ${inp('city','City',{req:1,ph:'City',ac:'address-level2'})}
+      ${stateField()}${countryField()}
+    </div>
+    <h3 class="coH">Your clinician <span class="opt">(optional)</span></h3>
+    <p class="hintTxt" style="margin:-4px 0 12px">If a nurse or doctor looks after your care, you can tell us who. You can leave this blank.</p>
+    <div class="fgrid">
+      ${inp('cl_first','Clinician’s first name',{ph:'First name'})}
+      ${inp('cl_last','Clinician’s last name',{ph:'Last name'})}
+      ${inp('cl_org','Organization / Hospital / Institution',{ph:'Hospital or clinic name'})}
+      ${inp('cl_func','Function',{ph:'Function'})}
+      ${inp('cl_email','Clinician’s email',{type:'email',wide:1,ph:'name@hospital.com.au'})}
+    </div>`;
+  host.innerHTML=`<div class="coWrap">
+    <form id="coForm" novalidate>
+      <button class="back" id="coBack" type="button">← Back to products</button>
+      <h2>Checkout</h2>
+      <p class="coSub">${nurse?'Request free samples for your hospital or ward.':'Request your free samples.'} Fields marked with an asterisk are required.</p>
+      <div id="errSum" class="errsum" role="alert" tabindex="-1" hidden></div>
+      ${salutField()}
+      ${nurse?clinician:patient}
+      <h3 class="coH">Permissions</h3>
+      <label class="chk"><input type="checkbox" id="mkt" ${S.consent.mkt?'checked':''}><span>I would like to receive information about relevant therapies, products, solutions or events from B. Braun and its contracted distribution partners. <em>(optional)</em></span></label>
+      <p class="hintTxt">B. Braun Australia is the responsible organisation. Your personal data is handled under Australian privacy law and the privacy policy.</p>
+      <label class="chk"><input type="checkbox" id="priv" ${S.consent.priv?'checked':''} aria-describedby="er_priv"><span>I have read the data protection policy and agree to the processing of my personal data. I can cancel this approval at any time. <span class="rq" aria-hidden="true">*</span></span></label>
+      <div class="er" id="er_priv" role="alert"></div>
+      <div class="coActs"><button class="cta alt" type="button" id="coBack2">Back</button><button class="cta" type="submit">Submit request</button></div>
+    </form>
+    <aside class="sum" id="coSum" aria-label="Your samples"></aside>
+  </div>`;
+  renderSummary();
+}
+function renderSummary(){
+  const el=$('#coSum'); if(!el) return;
+  const items=S.basket;
+  el.innerHTML=`<h3>Your samples <span class="cnt">${items.length}</span></h3><p class="freeLine">All samples are free of charge.</p>
+    ${items.length?`<ul>${items.map(b=>`<li>${art(b.f,b.colour)}<div><b>${esc(b.name)}</b><br><small>${b.colour!=='Standard'?esc(b.colour)+' · ':''}${esc(b.size)}<br>${esc(b.code)}</small></div><button type="button" class="x" data-sumrm="${esc(b.code)}" aria-label="Remove ${esc(b.name)}">✕</button></li>`).join('')}</ul>`:'<p class="hintTxt">Nothing selected.</p>'}
+    <button class="link" type="button" id="coMore">+ Add more products</button>`;
+}
+function openCheckout(){
+  document.body.classList.add('checkout'); $('#pCheckout').hidden=false; renderCheckout(); window.scrollTo(0,0);
+}
+function exitCheckout(){
+  document.body.classList.remove('checkout');
+  const g=$('#pGrid'); if(g&&!g.hidden) g.scrollIntoView({behavior:reduce?'auto':'smooth'}); else window.scrollTo(0,0);
+}
+function validate(){
+  const nurse=S.persona==='nurse', F=S.form, E=[], v=id=>(F[id]||'').trim();
+  const bad=(id,m)=>{ if(!E.some(e=>e.id===id)) E.push({id,msg:m}); };
+  const need=(id,m)=>{ if(!v(id)) bad(id,m); };
+  if(!S.basket.length) bad('basket','Add at least one product.');
+  need('first',nurse?'Enter the clinician’s first name.':'Enter your first name.');
+  need('last',nurse?'Enter the clinician’s last name.':'Enter your last name.');
+  if(nurse){ need('org','Enter your organization, hospital or institution.'); need('func','Enter your function.'); need('rname','Enter the receiver’s name.'); }
+  need('email',nurse?'Enter your business email.':'Enter your email address.');
+  if(v('email')&&!EMAIL.test(v('email'))) bad('email','Enter a valid email address.');
+  need('street','Enter a street address.'); need('postcode','Enter a 4-digit postal code.'); need('city','Enter a city or suburb.'); need('state','Select a state.');
+  if(v('postcode')&&!/^\d{4}$/.test(v('postcode'))) bad('postcode','Postal codes have 4 digits.');
+  if(nurse){ need('phone','Enter a phone number.'); need('mobile','Enter a mobile phone number.'); }
+  else if(!v('phone')&&!v('mobile')) bad('phone','Give a phone or mobile number.');
+  ['phone','mobile'].forEach(id=>{ if(v(id)&&!/^[0-9+()\s-]{8,}$/.test(v(id))) bad(id,'Enter a valid phone number.'); });
+  if(nurse&&!S.reqFor) bad('reqFor','Choose Discharge Pack or Ward Stock.');
+  if(!nurse&&v('cl_email')&&!EMAIL.test(v('cl_email'))) bad('cl_email','Enter a valid email address for your clinician, or leave it blank.');
+  if(!S.consent.priv) bad('priv','Please agree to the data protection policy to submit.');
+  return E;
+}
+function showErrors(E){
+  document.querySelectorAll('#coForm .er').forEach(x=>x.textContent='');
+  document.querySelectorAll('#coForm [aria-invalid]').forEach(x=>x.removeAttribute('aria-invalid'));
+  E.forEach(e=>{ const m=$('#er_'+e.id); if(m) m.textContent=e.msg; const i=$('#'+e.id); if(i) i.setAttribute('aria-invalid','true'); });
+  const sum=$('#errSum');
+  if(E.length){ sum.hidden=false; sum.textContent='Please check '+E.length+(E.length===1?' field':' fields')+' below.'; const first=E[0]; const t=first.id==='reqFor'?$('#rf0'):first.id==='basket'?sum:$('#'+first.id); (t||sum).focus(); }
+  else sum.hidden=true;
+}
+function submitCheckout(){
+  const E=validate(); showErrors(E); if(E.length) return;
+  const nurse=S.persona==='nurse', F=S.form, ref='DEMO-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  const who=nurse?F.rname:[F.first,F.last].filter(Boolean).join(' ');
+  $('#pCheckout').innerHTML=`<div class="coWrap done"><div class="tick" aria-hidden="true">✓</div>
+    <h2>Request submitted (demo)</h2>
+    <p class="coSub">Reference <b>${ref}</b>. In a live version a confirmation would be emailed to ${esc(F.email)}.</p>
+    <dl class="dlist"><dt>Samples</dt><dd>${S.basket.length} ${S.basket.length===1?'item':'items'}${nurse&&S.reqFor?' · '+esc(S.reqFor):''}</dd>
+      <dt>Deliver to</dt><dd>${esc(who)}<br>${esc(F.street)}, ${esc(F.city)} ${esc(F.state)} ${esc(F.postcode)}, Australia</dd></dl>
+    <button class="cta" type="button" id="coNew">Start a new request</button></div>`;
+  window.scrollTo(0,0);
+}
+function resetAll(){
+  S.basket=[]; S.form={}; S.reqFor=''; S.consent={mkt:false,priv:false}; S.cat=null; S.a=S.b=S.c=''; updBasket();
+  document.body.classList.remove('checkout'); ['#pCheckout','#pCat','#pFilter','#pGrid','#bar'].forEach(s=>$(s).hidden=true);
+  document.querySelectorAll('[data-cat]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  window.scrollTo(0,0);
+}
+const co=$('#pCheckout');
+co.addEventListener('input',e=>{
+  const t=e.target; if(!t.id||t.type==='radio'||t.type==='checkbox') return;
+  S.form[t.id]=t.value;
+  const m=$('#er_'+t.id); if(m) m.textContent=''; t.removeAttribute('aria-invalid');
+  if(t.id==='postcode'&&/^\d{4}$/.test(t.value)&&!S.form.stateManual){ const s=stateFromPostcode(t.value); if(s){ S.form.state=s; const sel=$('#state'); if(sel) sel.value=s; } }
+});
+co.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.name==='salut') S.form.salut=t.value;
+  else if(t.name==='reqFor'){ S.reqFor=t.value; $('#er_reqFor').textContent=''; }
+  else if(t.id==='mkt') S.consent.mkt=t.checked;
+  else if(t.id==='priv'){ S.consent.priv=t.checked; if(t.checked) $('#er_priv').textContent=''; }
+  else if(t.id==='state'){ S.form.state=t.value; S.form.stateManual=true; $('#er_state').textContent=''; }
+});
+co.addEventListener('submit',e=>{ e.preventDefault(); submitCheckout(); });
+co.addEventListener('click',e=>{
+  if(e.target.closest('#coBack,#coBack2,#coMore')){ exitCheckout(); return; }
+  const rm=e.target.closest('[data-sumrm]'); if(rm){ S.basket=S.basket.filter(b=>b.code!==rm.dataset.sumrm); updBasket(); if(!S.basket.length) renderCheckout(); return; }
+  if(e.target.closest('#coNew')) resetAll();
+});
+
+
+/* ---------- Optional live data (see LIVE_CSV_URL at the top) ---------- */
+if(LIVE_CSV_URL){
+  fetch(LIVE_CSV_URL,{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error(r.status); return r.text(); }).then(t=>{
+    const cat=buildCatalog(rowsFromCSV(t)); if(!cat.length) return;
+    CATALOG=cat;
+    if(S.cat){ renderDropdowns(); if(!$('#pGrid').hidden&&$('#detailView').hidden) showGrid(); }
+  }).catch(()=>{ /* keep the snapshot */ });
+}
+
+window.__t={get CATALOG(){return CATALOG;},S,matches,buildCatalog,rowsFromCSV,parseCSV,SNAPSHOT,groupRows,toRow,pretty,typeOptions,ringOptions,sysOptions,contOptions,validate,renderCheckout,renderDetail,openDetail};
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
