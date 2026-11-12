@@ -1,3 +1,5 @@
+console.log("V0.6 Beta");
+
 // Wrapped so it is safe to load once, in <head> (with defer) or at the end of <body>.
 (function(){
 if(window.__sampleSelectorLoaded) return; window.__sampleSelectorLoaded=true;
